@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -48,11 +49,10 @@ class MainActivity : ComponentActivity() {
             MoodMusicTheme {
                 PantallaLogin(
                     onIniciarSesion = { nombre, contrasena ->
-                        // Aquí conectas con tu ViewModel o navegación
-                        // Por ejemplo: navController.navigate("home")
+                        // Aquí va la navegación a la siguiente Activity
                     },
                     onRegistrarse = {
-                        // navController.navigate("registro")
+                        // Aquí va la navegación a la Activity de registro
                     }
                 )
             }
@@ -62,23 +62,17 @@ class MainActivity : ComponentActivity() {
 
 // -------------------------------------------------------
 // Pantalla Login
-// Conceptos de PDFs:
-//   - Column / Row / Box  (PDF 1 - Layouts)
-//   - mutableStateOf + remember  (PDF 2 - Estado y Recomposition)
-//   - State Hoisting  (PDF 3)
 // -------------------------------------------------------
 @Composable
 fun PantallaLogin(
     onIniciarSesion: (nombre: String, contrasena: String) -> Unit = { _, _ -> },
     onRegistrarse: () -> Unit = {}
 ) {
-    // Estado local (PDF 2)
     var nombre            by remember { mutableStateOf("") }
     var contrasena        by remember { mutableStateOf("") }
     var mostrarContrasena by remember { mutableStateOf(false) }
     var mensajeError      by remember { mutableStateOf("") }
 
-    // Column principal (PDF 1 - organiza verticalmente)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -88,12 +82,10 @@ fun PantallaLogin(
         verticalArrangement = Arrangement.Center
     ) {
 
-        // Logo
         LogoOnda()
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Título
         Text(
             text = "¡Bienvenido!",
             fontSize = 26.sp,
@@ -111,7 +103,6 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Campo nombre (State Hoisting - PDF 3)
         CampoTexto(
             valor = nombre,
             onValorChange = {
@@ -123,7 +114,6 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Campo contraseña
         CampoContrasena(
             valor = contrasena,
             onValorChange = {
@@ -136,7 +126,6 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Mensaje de error (PDF 2 - Recomposition)
         if (mensajeError.isNotEmpty()) {
             Text(
                 text = mensajeError,
@@ -147,7 +136,6 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Botón iniciar sesión
         BotonGradiente(
             texto = "Iniciar sesión",
             onClick = {
@@ -161,7 +149,6 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Botón registrarse
         BotonSecundario(
             texto = "Registrarse",
             onClick = onRegistrarse
@@ -170,22 +157,25 @@ fun PantallaLogin(
 }
 
 // -------------------------------------------------------
-// Logo (Box - PDF 1: superpone elementos)
+// Logo con fuente Pacifico
 // -------------------------------------------------------
 @Composable
 fun LogoOnda() {
     Box(
-        modifier = Modifier.size(width = 130.dp, height = 90.dp),
+        modifier = Modifier.size(width = 200.dp, height = 90.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = "♩", fontSize = 22.sp, color = ColorMorado)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "(", fontSize = 16.sp, color = ColorSubtexto)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Mood&Music", fontSize = 18.sp, color = ColorAzul)
+                Text(
+                    text = "Mood&Music",
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily.Cursive,
+                    color = ColorAzul
+                )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = ")", fontSize = 16.sp, color = ColorSubtexto)
             }
             Text(text = "♪", fontSize = 18.sp, color = ColorMorado)
         }
@@ -194,7 +184,6 @@ fun LogoOnda() {
 
 // -------------------------------------------------------
 // Campo de texto reutilizable
-// State Hoisting (PDF 3): recibe valor y evento, sin estado interno
 // -------------------------------------------------------
 @Composable
 fun CampoTexto(
@@ -221,8 +210,7 @@ fun CampoTexto(
 }
 
 // -------------------------------------------------------
-// Campo contraseña con ojo para mostrar/ocultar
-// State Hoisting (PDF 3)
+// Campo contraseña con ojo
 // -------------------------------------------------------
 @Composable
 fun CampoContrasena(
@@ -263,7 +251,7 @@ fun CampoContrasena(
 }
 
 // -------------------------------------------------------
-// Botón con gradiente azul → morado
+// Botón gradiente
 // -------------------------------------------------------
 @Composable
 fun BotonGradiente(
@@ -299,7 +287,7 @@ fun BotonGradiente(
 }
 
 // -------------------------------------------------------
-// Botón secundario (gris)
+// Botón secundario
 // -------------------------------------------------------
 @Composable
 fun BotonSecundario(
