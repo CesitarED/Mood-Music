@@ -26,19 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 
-// -------------------------------------------------------
-// Colores del tema
-// -------------------------------------------------------
-val ColorFondo     = Color(0xFFF0F0F5)
-val ColorAzul      = Color(0xFF1DB8D4)
-val ColorMorado    = Color(0xFF8B5CF6)
-val ColorTexto     = Color(0xFF1A1A2E)
-val ColorSubtexto  = Color(0xFF888888)
-val ColorCampo     = Color(0xFFFFFFFF)
-val ColorBorde     = Color(0xFFE0E0E8)
-val ColorBotonGris = Color(0xFFE8E8EE)
 
-// -------------------------------------------------------
 // InicioSesion Activity
 // -------------------------------------------------------
 class InicioSesion : ComponentActivity() {
@@ -172,8 +160,9 @@ fun LogoOnda() {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "♩", fontSize = 22.sp, color = ColorMorado)
+
             Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "♩", fontSize = 22.sp, color = ColorMorado)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Mood&Music",
@@ -182,8 +171,9 @@ fun LogoOnda() {
                     color = ColorAzul
                 )
                 Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "♪", fontSize = 18.sp, color = ColorMorado)
             }
-            Text(text = "♪", fontSize = 18.sp, color = ColorMorado)
+
         }
     }
 }

@@ -1,30 +1,25 @@
 package com.example.moodmusic
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.moodmusic.ui.theme.MoodMusicTheme
+import kotlinx.coroutines.delay
 
 // -------------------------------------------------------
 // Colores del tema
@@ -39,7 +34,7 @@ val ColorBorde     = Color(0xFFE0E0E8)
 val ColorBotonGris = Color(0xFFE8E8EE)
 
 // -------------------------------------------------------
-// MainActivity
+// MainActivity - Pantalla de carga (Splash)
 // -------------------------------------------------------
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,12 +42,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MoodMusicTheme {
-                PantallaLogin(
-                    onIniciarSesion = { nombre, contrasena ->
-                        // Aquí va la navegación a la siguiente Activity
-                    },
-                    onRegistrarse = {
-                        // Aquí va la navegación a la Activity de registro
+                PantallaCarga(
+                    onCargaTerminada = {
+                        // Navegación entre Activities con Intent
+                        val intent = Intent(this, InicioSesion::class.java)
+                        startActivity(intent)
+                        // Cerramos el splash para que no quede en el back stack
+                        finish()
                     }
                 )
             }
@@ -61,256 +57,102 @@ class MainActivity : ComponentActivity() {
 }
 
 // -------------------------------------------------------
-// Pantalla Login
+// Pantalla de carga
 // -------------------------------------------------------
 @Composable
-fun PantallaLogin(
-    onIniciarSesion: (nombre: String, contrasena: String) -> Unit = { _, _ -> },
-    onRegistrarse: () -> Unit = {}
+fun PantallaCarga(
+    onCargaTerminada: () -> Unit = {}
 ) {
-    var nombre            by remember { mutableStateOf("") }
-    var contrasena        by remember { mutableStateOf("") }
-    var mostrarContrasena by remember { mutableStateOf(false) }
-    var mensajeError      by remember { mutableStateOf("") }
+    // Estado reactivo con remember y mutableStateOf
+    var puntos by remember { mutableStateOf("") }
 
+    // LaunchedEffect ejecuta código suspendido una sola vez
+    // cuando el composable entra en pantalla
+    LaunchedEffect(Unit) {
+        delay(3000L) // espera 3 segundos
+        onCargaTerminada()
+    }
+
+    // Animación infinita para los puntos
+    val infiniteTransition = rememberInfiniteTransition(label = "puntos")
+    val paso by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue  = 3f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(durationMillis = 900, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "paso"
+    )
+
+    //  Recomposition: actualiza los puntos según el paso
+    puntos = when (paso.toInt()) {
+        0    -> "."
+        1    -> ".."
+        2    -> "..."
+        else -> ""
+    }
+
+    // Layouts: Column principal
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ColorFondo)
-            .padding(horizontal = 28.dp),
+            .background(ColorFondo),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
 
-        LogoOnda()
+        LogoSplash()
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "¡Bienvenido!",
-            fontSize = 26.sp,
+            text = "MOOD & MUSIC",
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
+            letterSpacing = 3.sp,
+            color = ColorTexto
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Siente tu música",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold,
             color = ColorTexto
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Estado reactivo: puntos animados
         Text(
-            text = "Inicie sesión para continuar",
-            fontSize = 14.sp,
-            color = ColorSubtexto
+            text = puntos,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = ColorAzul
         )
+    }
+}
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        CampoTexto(
-            valor = nombre,
-            onValorChange = {
-                nombre = it
-                mensajeError = ""
-            },
-            placeholder = "Ingrese el nombre"
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        CampoContrasena(
-            valor = contrasena,
-            onValorChange = {
-                contrasena = it
-                mensajeError = ""
-            },
-            mostrar = mostrarContrasena,
-            onToggleMostrar = { mostrarContrasena = !mostrarContrasena }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        if (mensajeError.isNotEmpty()) {
+// -------------------------------------------------------
+// Logo para el Splash
+// -------------------------------------------------------
+@Composable
+fun LogoSplash() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "♩", fontSize = 28.sp, color = ColorMorado)
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = mensajeError,
-                color = Color(0xFFE24B4A),
-                fontSize = 13.sp
+                text = "Mood&Music",
+                fontSize = 18.sp,
+                fontFamily = FontFamily.Cursive,
+                color = ColorAzul
             )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(text = "♪", fontSize = 28.sp, color = ColorMorado)
         }
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        BotonGradiente(
-            texto = "Iniciar sesión",
-            onClick = {
-                if (nombre.isBlank() || contrasena.isBlank()) {
-                    mensajeError = "Por favor completa todos los campos."
-                } else {
-                    onIniciarSesion(nombre, contrasena)
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        BotonSecundario(
-            texto = "Registrarse",
-            onClick = onRegistrarse
-        )
-    }
-}
-
-// -------------------------------------------------------
-// Logo con fuente Pacifico
-// -------------------------------------------------------
-@Composable
-fun LogoOnda() {
-    Box(
-        modifier = Modifier.size(width = 200.dp, height = 90.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "♩", fontSize = 22.sp, color = ColorMorado)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Mood&Music",
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily.Cursive,
-                    color = ColorAzul
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-            }
-            Text(text = "♪", fontSize = 18.sp, color = ColorMorado)
-        }
-    }
-}
-
-// -------------------------------------------------------
-// Campo de texto reutilizable
-// -------------------------------------------------------
-@Composable
-fun CampoTexto(
-    valor: String,
-    onValorChange: (String) -> Unit,
-    placeholder: String
-) {
-    OutlinedTextField(
-        value = valor,
-        onValueChange = onValorChange,
-        placeholder = {
-            Text(text = placeholder, color = ColorSubtexto, fontSize = 14.sp)
-        },
-        singleLine = true,
-        shape = RoundedCornerShape(14.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor      = ColorMorado,
-            unfocusedBorderColor    = ColorBorde,
-            focusedContainerColor   = ColorCampo,
-            unfocusedContainerColor = ColorCampo
-        ),
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-// -------------------------------------------------------
-// Campo contraseña con ojo
-// -------------------------------------------------------
-@Composable
-fun CampoContrasena(
-    valor: String,
-    onValorChange: (String) -> Unit,
-    mostrar: Boolean,
-    onToggleMostrar: () -> Unit
-) {
-    OutlinedTextField(
-        value = valor,
-        onValueChange = onValorChange,
-        placeholder = {
-            Text("Ingrese la contraseña", color = ColorSubtexto, fontSize = 14.sp)
-        },
-        singleLine = true,
-        visualTransformation = if (mostrar) VisualTransformation.None
-        else PasswordVisualTransformation(),
-        trailingIcon = {
-            IconButton(onClick = onToggleMostrar) {
-                Icon(
-                    imageVector = if (mostrar) Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff,
-                    contentDescription = if (mostrar) "Ocultar contraseña"
-                    else "Mostrar contraseña",
-                    tint = ColorSubtexto
-                )
-            }
-        },
-        shape = RoundedCornerShape(14.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor      = ColorMorado,
-            unfocusedBorderColor    = ColorBorde,
-            focusedContainerColor   = ColorCampo,
-            unfocusedContainerColor = ColorCampo
-        ),
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-// -------------------------------------------------------
-// Botón gradiente
-// -------------------------------------------------------
-@Composable
-fun BotonGradiente(
-    texto: String,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(ColorAzul, ColorMorado)
-                )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Button(
-            onClick = onClick,
-            modifier = Modifier.fillMaxSize(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            elevation = ButtonDefaults.buttonElevation(0.dp)
-        ) {
-            Text(
-                text = texto,
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-    }
-}
-
-// -------------------------------------------------------
-// Botón secundario
-// -------------------------------------------------------
-@Composable
-fun BotonSecundario(
-    texto: String,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp),
-        shape = RoundedCornerShape(14.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = ColorBotonGris,
-            contentColor   = ColorTexto
-        ),
-        elevation = ButtonDefaults.buttonElevation(0.dp)
-    ) {
-        Text(
-            text = texto,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold
-        )
     }
 }
 
@@ -319,8 +161,8 @@ fun BotonSecundario(
 // -------------------------------------------------------
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PantallaLoginPreview() {
+fun PantallaCargaPreview() {
     MoodMusicTheme {
-        PantallaLogin()
+        PantallaCarga()
     }
 }
