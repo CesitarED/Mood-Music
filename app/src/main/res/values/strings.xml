@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Mood&amp;Music</string>
+    <string name="title_activity_inicio_sesion">InicioSesion</string>
 </resources>
