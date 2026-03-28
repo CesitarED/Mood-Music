@@ -1,5 +1,6 @@
 package com.example.moodmusic
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,7 +24,7 @@ import com.example.moodmusic.ui.theme.MoodMusicTheme
 import kotlinx.coroutines.delay
 
 // -------------------------------------------------------
-// Colores del tema
+// Colores del tema (declarados aquí para todo el proyecto)
 // -------------------------------------------------------
 val ColorFondo     = Color(0xFFF0F0F5)
 val ColorAzul      = Color(0xFF1DB8D4)
@@ -42,36 +44,30 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MoodMusicTheme {
-                PantallaCarga(
-                    onCargaTerminada = {
-                        // Navegación entre Activities con Intent
-                        val intent = Intent(this, InicioSesion::class.java)
-                        startActivity(intent)
-                        // Cerramos el splash para que no quede en el back stack
-                        finish()
-                    }
-                )
+                PantallaCarga()
             }
         }
     }
 }
 
 // -------------------------------------------------------
-// Pantalla de carga
+// Pantalla de carga con navegación automática
 // -------------------------------------------------------
 @Composable
-fun PantallaCarga(
-    onCargaTerminada: () -> Unit = {}
-) {
-    // Estado reactivo con remember y mutableStateOf
-    var puntos by remember { mutableStateOf("") }
+fun PantallaCarga() {
 
-    // LaunchedEffect ejecuta código suspendido una sola vez
-    // cuando el composable entra en pantalla
+    val context = LocalContext.current
+
+    // Navega a InicioSesionActivity después de 3 segundos
     LaunchedEffect(Unit) {
-        delay(3000L) // espera 3 segundos
-        onCargaTerminada()
+        delay(3000)
+        val intent = Intent(context, InicioSesionActivity::class.java)
+        context.startActivity(intent)
+        (context as Activity).finish()
     }
+
+    // Estado de los puntos (PDF 2 - mutableStateOf + remember)
+    var puntos by remember { mutableStateOf("") }
 
     // Animación infinita para los puntos
     val infiniteTransition = rememberInfiniteTransition(label = "puntos")
@@ -85,7 +81,7 @@ fun PantallaCarga(
         label = "paso"
     )
 
-    //  Recomposition: actualiza los puntos según el paso
+    // Actualiza los puntos según el paso (PDF 2 - Recomposition)
     puntos = when (paso.toInt()) {
         0    -> "."
         1    -> ".."
@@ -93,7 +89,7 @@ fun PantallaCarga(
         else -> ""
     }
 
-    // Layouts: Column principal
+    // Column principal (PDF 1 - Layouts)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -106,6 +102,7 @@ fun PantallaCarga(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Nombre de la app
         Text(
             text = "MOOD & MUSIC",
             fontSize = 20.sp,
@@ -116,6 +113,7 @@ fun PantallaCarga(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Slogan
         Text(
             text = "Siente tu música",
             fontSize = 22.sp,
@@ -125,7 +123,7 @@ fun PantallaCarga(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Estado reactivo: puntos animados
+        // Puntos animados (PDF 2 - estado reactivo)
         Text(
             text = puntos,
             fontSize = 24.sp,
@@ -145,8 +143,8 @@ fun LogoSplash() {
             Text(text = "♩", fontSize = 28.sp, color = ColorMorado)
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "Mood&Music",
-                fontSize = 18.sp,
+                text = "〜〜〜",
+                fontSize = 32.sp,
                 fontFamily = FontFamily.Cursive,
                 color = ColorAzul
             )

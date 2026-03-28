@@ -29,7 +29,7 @@ import com.example.moodmusic.ui.theme.MoodMusicTheme
 
 // InicioSesion Activity
 // -------------------------------------------------------
-class InicioSesion : ComponentActivity() {
+class InicioSesionActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

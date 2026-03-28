@@ -12,9 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MoodMusic">
         <activity
-            android:name=".InicioSesion"
+            android:name=".ui.theme.RegistroActivity"
             android:exported="false"
-            android:label="@string/title_activity_inicio_sesion"
+            android:label="@string/title_activity_registro"
             android:theme="@style/Theme.MoodMusic" />
         <activity
             android:name=".MainActivity"
@@ -27,6 +27,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".InicioSesionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+        <activity
+            android:name=".RegistroActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
     </application>
 
 </manifest>
