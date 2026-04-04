@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -181,42 +183,20 @@ fun PantallaRegistro(
             Box(modifier = Modifier.weight(1f)) {
                 OutlinedTextField(
                     value = edadSeleccionada,
-                    onValueChange = {},
+                    onValueChange = { if (it.all { char -> char.isDigit() }) edadSeleccionada = it },
                     placeholder = { Text("Edad", color = ColorSubtexto, fontSize = 14.sp) },
-                    readOnly = true,
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
-                    trailingIcon = {
-                        IconButton(onClick = { expandirEdad = !expandirEdad }) {
-                            Text(
-                                text = if (expandirEdad) "∧" else "∨",
-                                fontSize = 14.sp,
-                                color = ColorSubtexto
-                            )
-                        }
-                    },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor      = ColorMorado,
                         unfocusedBorderColor    = ColorBorde,
                         focusedContainerColor   = ColorCampo,
                         unfocusedContainerColor = ColorCampo
                     ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
-                DropdownMenu(
-                    expanded = expandirEdad,
-                    onDismissRequest = { expandirEdad = false }
-                ) {
-                    opcionesEdad.forEach { edad ->
-                        DropdownMenuItem(
-                            text = { Text(edad) },
-                            onClick = {
-                                edadSeleccionada = edad
-                                expandirEdad = false
-                            }
-                        )
-                    }
-                }
+
             }
         }
 

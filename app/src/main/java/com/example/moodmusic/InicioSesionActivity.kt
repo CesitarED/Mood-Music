@@ -1,5 +1,6 @@
 package com.example.moodmusic
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,8 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 
-
-// InicioSesion Activity
+// -------------------------------------------------------
+// InicioSesionActivity
 // -------------------------------------------------------
 class InicioSesionActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,16 +38,14 @@ class InicioSesionActivity : ComponentActivity() {
             MoodMusicTheme {
                 PantallaLogin(
                     onIniciarSesion = { nombre, contrasena ->
-                        // Aquí va la navegación a la siguiente Activity
-                        // Ejemplo:
+                        // Aquí va la navegación a HomeActivity (próximo paso)
                         // val intent = Intent(this, HomeActivity::class.java)
                         // startActivity(intent)
                     },
                     onRegistrarse = {
-                        // Aquí va la navegación a la Activity de registro
-                        // Ejemplo:
-                        // val intent = Intent(this, RegistroActivity::class.java)
-                        // startActivity(intent)
+                        // Navega a RegistroActivity
+                        val intent = Intent(this, RegistroActivity::class.java)
+                        startActivity(intent)
                     }
                 )
             }
@@ -160,7 +159,6 @@ fun LogoOnda() {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "♩", fontSize = 22.sp, color = ColorMorado)
                 Spacer(modifier = Modifier.width(4.dp))
@@ -173,7 +171,6 @@ fun LogoOnda() {
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = "♪", fontSize = 18.sp, color = ColorMorado)
             }
-
         }
     }
 }
