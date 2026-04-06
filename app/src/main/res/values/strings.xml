@@ -2,4 +2,5 @@
     <string name="app_name">Mood&amp;Music</string>
     <string name="title_activity_inicio_sesion">InicioSesion</string>
     <string name="title_activity_registro">RegistroActivity</string>
+    <string name="title_activity_estado_animo">EstadoAnimoActivity</string>
 </resources>

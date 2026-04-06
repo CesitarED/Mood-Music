@@ -1,9 +1,11 @@
 package com.example.moodmusic
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -28,28 +30,52 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
 import com.example.moodmusic.ui.theme.MoodMusicTheme
-import com.example.moodmusic.model.Usuario
+import com.example.moodmusic.viewmodel.UsuarioViewModel
 
 // -------------------------------------------------------
 // RegistroActivity
 // -------------------------------------------------------
 class RegistroActivity : ComponentActivity() {
+
+    // PDF 3 - igual que el profesor:
+    // class PersonaViewModel(application: Application) : AndroidViewModel(application)
+    // se instancia con ViewModelProvider pasando la application
+    private val viewModel: UsuarioViewModel by lazy {
+        ViewModelProvider.AndroidViewModelFactory
+            .getInstance(application)
+            .create(UsuarioViewModel::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MoodMusicTheme {
-                PantallaRegistro(
-                    onRegistrarse = { usuario ->
-                        // Aquí va la navegación a HomeActivity
-                        // val intent = Intent(this, HomeActivity::class.java)
-                        // intent.putExtra("usuario", usuario)
-                        // startActivity(intent)
-                    },
-                    onCancelar = {
-                        finish() // Vuelve a InicioSesionActivity
+
+                val registroExitoso = viewModel.registroExitoso
+                val mensajeError    = viewModel.mensajeError
+
+                // Cuando el registro es exitoso vuelve al login
+                LaunchedEffect(registroExitoso) {
+                    if (registroExitoso) {
+                        Toast.makeText(
+                            this@RegistroActivity,
+                            "¡Registro exitoso! Inicia sesión con tus credenciales.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        viewModel.limpiarEstados()
+                        finish()
                     }
+                }
+
+                PantallaRegistro(
+                    mensajeErrorExterno = mensajeError,
+                    onRegistrarse = { username, nombre, apellido, edad, correo, contrasena ->
+                        viewModel.registrar(username, nombre, apellido, edad, correo, contrasena)
+                    },
+                    onCancelar = { finish() }
                 )
             }
         }
@@ -58,18 +84,14 @@ class RegistroActivity : ComponentActivity() {
 
 // -------------------------------------------------------
 // Pantalla Registro
-// Conceptos aplicados:
-//   - Column / Row / Box  (PDF 1 - Layouts)
-//   - mutableStateOf + remember  (PDF 2 - Estado y Recomposition)
-//   - State Hoisting  (PDF 3)
-//   - data class Usuario + Serializable  (PDF 4 - Intent)
 // -------------------------------------------------------
 @Composable
 fun PantallaRegistro(
-    onRegistrarse: (usuario: Usuario) -> Unit = {},
+    mensajeErrorExterno: String = "",
+    onRegistrarse: (username: String, nombre: String, apellido: String,
+                    edad: String, correo: String, contrasena: String) -> Unit = { _, _, _, _, _, _ -> },
     onCancelar: () -> Unit = {}
 ) {
-    // Estado de cada campo (PDF 2 - mutableStateOf + remember)
     var nombre           by remember { mutableStateOf("") }
     var apellido         by remember { mutableStateOf("") }
     var username         by remember { mutableStateOf("") }
@@ -79,12 +101,14 @@ fun PantallaRegistro(
     var confirmarContra  by remember { mutableStateOf("") }
     var mostrarContra    by remember { mutableStateOf(false) }
     var mostrarConfirmar by remember { mutableStateOf(false) }
-    var expandirEdad     by remember { mutableStateOf(false) }
     var mensajeError     by remember { mutableStateOf("") }
 
-    val opcionesEdad = (10..80).map { it.toString() }
+    LaunchedEffect(mensajeErrorExterno) {
+        if (mensajeErrorExterno.isNotEmpty()) {
+            mensajeError = mensajeErrorExterno
+        }
+    }
 
-    // Column con scroll para pantallas pequeñas
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -96,7 +120,6 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(52.dp))
 
-        // ---------- Logo ----------
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = "♩", fontSize = 22.sp, color = ColorMorado)
             Spacer(modifier = Modifier.width(4.dp))
@@ -112,7 +135,6 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ---------- Título ----------
         Text(
             text = "Crear cuenta",
             fontSize = 26.sp,
@@ -122,7 +144,7 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // ---------- Fila: Nombre + Apellido ----------
+        // Nombre + Apellido
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -159,7 +181,7 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // ---------- Fila: Username + Edad (dropdown) ----------
+        // Username + Edad
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -178,31 +200,30 @@ fun PantallaRegistro(
                 ),
                 modifier = Modifier.weight(1f)
             )
-
-            // Dropdown edad
-            Box(modifier = Modifier.weight(1f)) {
-                OutlinedTextField(
-                    value = edadSeleccionada,
-                    onValueChange = { if (it.all { char -> char.isDigit() }) edadSeleccionada = it },
-                    placeholder = { Text("Edad", color = ColorSubtexto, fontSize = 14.sp) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor      = ColorMorado,
-                        unfocusedBorderColor    = ColorBorde,
-                        focusedContainerColor   = ColorCampo,
-                        unfocusedContainerColor = ColorCampo
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-            }
+            OutlinedTextField(
+                value = edadSeleccionada,
+                onValueChange = {
+                    if (it.all { char -> char.isDigit() }) {
+                        edadSeleccionada = it
+                        mensajeError = ""
+                    }
+                },
+                placeholder = { Text("Edad", color = ColorSubtexto, fontSize = 14.sp) },
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor      = ColorMorado,
+                    unfocusedBorderColor    = ColorBorde,
+                    focusedContainerColor   = ColorCampo,
+                    unfocusedContainerColor = ColorCampo
+                ),
+                modifier = Modifier.weight(1f)
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // ---------- Correo ----------
         OutlinedTextField(
             value = correo,
             onValueChange = { correo = it; mensajeError = "" },
@@ -220,7 +241,6 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // ---------- Contraseña ----------
         OutlinedTextField(
             value = contrasena,
             onValueChange = { contrasena = it; mensajeError = "" },
@@ -250,7 +270,6 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // ---------- Confirmar contraseña ----------
         OutlinedTextField(
             value = confirmarContra,
             onValueChange = { confirmarContra = it; mensajeError = "" },
@@ -280,7 +299,6 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // ---------- Mensaje de error ----------
         if (mensajeError.isNotEmpty()) {
             Text(
                 text = mensajeError,
@@ -291,7 +309,6 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // ---------- Botón Registrarme ----------
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -316,16 +333,10 @@ fun PantallaRegistro(
                             mensajeError = "Las contraseñas no coinciden."
                         }
                         else -> {
-                            // Crear objeto Usuario con data class (PDF 4)
-                            val usuario = Usuario(
-                                nombre     = nombre,
-                                apellido   = apellido,
-                                username   = username,
-                                edad       = edadSeleccionada,
-                                correo     = correo,
-                                contrasena = contrasena
+                            onRegistrarse(
+                                username, nombre, apellido,
+                                edadSeleccionada, correo, contrasena
                             )
-                            onRegistrarse(usuario)
                         }
                     }
                 },
@@ -344,7 +355,6 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // ---------- Botón Cancelar ----------
         Button(
             onClick = onCancelar,
             modifier = Modifier
@@ -368,9 +378,6 @@ fun PantallaRegistro(
     }
 }
 
-// -------------------------------------------------------
-// Preview
-// -------------------------------------------------------
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PantallaRegistroPreview() {

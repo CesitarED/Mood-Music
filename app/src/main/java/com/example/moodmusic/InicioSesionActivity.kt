@@ -25,27 +25,53 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
 import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.viewmodel.UsuarioViewModel
 
 // -------------------------------------------------------
 // InicioSesionActivity
 // -------------------------------------------------------
 class InicioSesionActivity : ComponentActivity() {
+
+    // PDF 3 - igual que el profesor usa AndroidViewModel
+    private val viewModel: UsuarioViewModel by lazy {
+        ViewModelProvider.AndroidViewModelFactory
+            .getInstance(application)
+            .create(UsuarioViewModel::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MoodMusicTheme {
+
+                val loginExitoso = viewModel.loginExitoso
+                val mensajeError = viewModel.mensajeError
+
+                // Cuando el login es exitoso navega a EstadoAnimoActivity
+                LaunchedEffect(loginExitoso) {
+                    if (loginExitoso) {
+                        val intent = Intent(
+                            this@InicioSesionActivity,
+                            EstadoAnimoActivity::class.java
+                        )
+                        // Enviamos el usuario logueado a la siguiente Activity
+                        intent.putExtra("usuario", viewModel.usuarioActual)
+                        startActivity(intent)
+                        viewModel.limpiarEstados()
+                        finish()
+                    }
+                }
+
                 PantallaLogin(
-                    onIniciarSesion = { nombre, contrasena ->
-                        // Aquí va la navegación a HomeActivity (próximo paso)
-                        // val intent = Intent(this, HomeActivity::class.java)
-                        // startActivity(intent)
+                    mensajeErrorExterno = mensajeError,
+                    onIniciarSesion = { nombreOUsername, contrasena ->
+                        viewModel.login(nombreOUsername, contrasena)
                     },
                     onRegistrarse = {
-                        // Navega a RegistroActivity
-                        val intent = Intent(this, RegistroActivity::class.java)
-                        startActivity(intent)
+                        startActivity(Intent(this, RegistroActivity::class.java))
                     }
                 )
             }
@@ -58,6 +84,7 @@ class InicioSesionActivity : ComponentActivity() {
 // -------------------------------------------------------
 @Composable
 fun PantallaLogin(
+    mensajeErrorExterno: String = "",
     onIniciarSesion: (nombre: String, contrasena: String) -> Unit = { _, _ -> },
     onRegistrarse: () -> Unit = {}
 ) {
@@ -65,6 +92,12 @@ fun PantallaLogin(
     var contrasena        by remember { mutableStateOf("") }
     var mostrarContrasena by remember { mutableStateOf(false) }
     var mensajeError      by remember { mutableStateOf("") }
+
+    LaunchedEffect(mensajeErrorExterno) {
+        if (mensajeErrorExterno.isNotEmpty()) {
+            mensajeError = mensajeErrorExterno
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -98,21 +131,15 @@ fun PantallaLogin(
 
         CampoTexto(
             valor = nombre,
-            onValorChange = {
-                nombre = it
-                mensajeError = ""
-            },
-            placeholder = "Ingrese el nombre"
+            onValorChange = { nombre = it; mensajeError = "" },
+            placeholder = "Ingrese su usuario o correo"
         )
 
         Spacer(modifier = Modifier.height(14.dp))
 
         CampoContrasena(
             valor = contrasena,
-            onValorChange = {
-                contrasena = it
-                mensajeError = ""
-            },
+            onValorChange = { contrasena = it; mensajeError = "" },
             mostrar = mostrarContrasena,
             onToggleMostrar = { mostrarContrasena = !mostrarContrasena }
         )
@@ -132,10 +159,11 @@ fun PantallaLogin(
         BotonGradiente(
             texto = "Iniciar sesión",
             onClick = {
-                if (nombre.isBlank() || contrasena.isBlank()) {
-                    mensajeError = "Por favor completa todos los campos."
-                } else {
-                    onIniciarSesion(nombre, contrasena)
+                when {
+                    nombre.isBlank() || contrasena.isBlank() -> {
+                        mensajeError = "Por favor completa todos los campos."
+                    }
+                    else -> onIniciarSesion(nombre, contrasena)
                 }
             }
         )
@@ -187,9 +215,7 @@ fun CampoTexto(
     OutlinedTextField(
         value = valor,
         onValueChange = onValorChange,
-        placeholder = {
-            Text(text = placeholder, color = ColorSubtexto, fontSize = 14.sp)
-        },
+        placeholder = { Text(text = placeholder, color = ColorSubtexto, fontSize = 14.sp) },
         singleLine = true,
         shape = RoundedCornerShape(14.dp),
         colors = OutlinedTextFieldDefaults.colors(
@@ -215,9 +241,7 @@ fun CampoContrasena(
     OutlinedTextField(
         value = valor,
         onValueChange = onValorChange,
-        placeholder = {
-            Text("Ingrese la contraseña", color = ColorSubtexto, fontSize = 14.sp)
-        },
+        placeholder = { Text("Ingrese la contraseña", color = ColorSubtexto, fontSize = 14.sp) },
         singleLine = true,
         visualTransformation = if (mostrar) VisualTransformation.None
         else PasswordVisualTransformation(),
@@ -226,8 +250,7 @@ fun CampoContrasena(
                 Icon(
                     imageVector = if (mostrar) Icons.Filled.Visibility
                     else Icons.Filled.VisibilityOff,
-                    contentDescription = if (mostrar) "Ocultar contraseña"
-                    else "Mostrar contraseña",
+                    contentDescription = null,
                     tint = ColorSubtexto
                 )
             }
@@ -307,9 +330,6 @@ fun BotonSecundario(
     }
 }
 
-// -------------------------------------------------------
-// Preview
-// -------------------------------------------------------
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PantallaLoginPreview() {
