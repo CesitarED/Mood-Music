@@ -6,7 +6,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,7 +19,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,19 +34,15 @@ import com.example.moodmusic.model.UsuarioEntity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 import com.example.moodmusic.viewmodel.EstadoAnimoViewModel
 
-// -------------------------------------------------------
-// EstadoAnimoActivity
-// Pantalla donde el usuario selecciona cómo se siente hoy
-// -------------------------------------------------------
 class EstadoAnimoActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Recibir el objeto UsuarioEntity desde el Intent (Android 13+)
         val usuario = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("usuario", UsuarioEntity::class.java)
         } else {
+            @Suppress("DEPRECATION")
             intent.getSerializableExtra("usuario") as? UsuarioEntity
         }
 
@@ -50,10 +51,17 @@ class EstadoAnimoActivity : ComponentActivity() {
                 PantallaEstadoAnimo(
                     usuario = usuario,
                     onGuardar = { estadoAnimo ->
-                        // Navega a HistorialActivity (próximo paso)
+                        val intent = Intent(this, RegistrarEstadoActivity::class.java).apply {
+                            putExtra("usuario", usuario)
+                            putExtra("estadoAnimo", estadoAnimo)
+                        }
+                        startActivity(intent)
                     },
                     onVerHistorial = {
-                        // Navega a HistorialActivity
+                        val intent = Intent(this, HistorialActivity::class.java).apply {
+                            putExtra("usuario", usuario)
+                        }
+                        startActivity(intent)
                     }
                 )
             }
@@ -61,14 +69,6 @@ class EstadoAnimoActivity : ComponentActivity() {
     }
 }
 
-// -------------------------------------------------------
-// Pantalla Estado de Ánimo
-// Conceptos aplicados:
-//   - Column / LazyColumn  (PDF 1 - Layouts)
-//   - mutableStateOf + remember  (PDF 2 - Estado)
-//   - State Hoisting  (PDF 3)
-//   - ViewModel + mutableStateOf  (PDF 4 - ViewModel)
-// -------------------------------------------------------
 @Composable
 fun PantallaEstadoAnimo(
     viewModel: EstadoAnimoViewModel = viewModel(),
@@ -76,7 +76,6 @@ fun PantallaEstadoAnimo(
     onGuardar: (EstadoAnimo) -> Unit = {},
     onVerHistorial: () -> Unit = {}
 ) {
-    // Estado de error local
     var mensajeError by remember { mutableStateOf("") }
 
     Column(
@@ -88,118 +87,105 @@ fun PantallaEstadoAnimo(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Spacer(modifier = Modifier.height(56.dp))
+        Spacer(modifier = Modifier.height(60.dp))
 
-        // ---------- Saludo ----------
-        usuario?.let {
-            Text(
-                text = "Hola, ${it.nombre}",
-                fontSize = 18.sp,
-                color = ColorMorado,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-        }
-
-        // ---------- Título ----------
         Text(
             text = "¿Cómo te sientes hoy?",
-            fontSize = 26.sp,
+            fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = ColorTexto,
-            textAlign = TextAlign.Start,
+            textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // ---------- Subtítulo ----------
         Text(
             text = "Tu emoción define tu energía. Elige cómo te sientes hoy y transforma ese estado en música.",
-            fontSize = 14.sp,
+            fontSize = 15.sp,
             color = ColorSubtexto,
             textAlign = TextAlign.Center,
-            lineHeight = 20.sp
+            lineHeight = 22.sp,
+            modifier = Modifier.padding(horizontal = 12.dp)
         )
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // ---------- Lista de estados de ánimo ----------
-        // Recorre la lista del ViewModel (State Hoisting - PDF 3)
+        // Lista de estados de ánimo
         viewModel.listaEstados.forEach { estado ->
             ItemEstadoAnimo(
                 estado = estado,
-                // Resalta si está seleccionado (PDF 2 - Recomposition)
                 seleccionado = viewModel.estadoSeleccionado?.nombre == estado.nombre,
                 onClick = {
-                    // UI envía evento → ViewModel actualiza estado (PDF 3)
                     viewModel.seleccionarEstado(estado)
                     mensajeError = ""
                 }
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // ---------- Mensaje de error ----------
         if (mensajeError.isNotEmpty()) {
             Text(
                 text = mensajeError,
-                color = Color(0xFFE24B4A),
-                fontSize = 13.sp
+                color = Color(0xFFD32F2F),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(20.dp))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ---------- Botón Guardar ----------
+        // ---------- Botón Continuar ----------
         Button(
             onClick = {
                 if (viewModel.guardarEstado()) {
                     viewModel.estadoSeleccionado?.let { onGuardar(it) }
                 } else {
-                    mensajeError = "Por favor selecciona cómo te sientes."
+                    mensajeError = "Debe seleccionar una emoción"
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
+                .height(56.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White,
                 contentColor   = ColorTexto
             ),
-            border = ButtonDefaults.outlinedButtonBorder
+            border = BorderStroke(
+                width = 1.5.dp,
+                brush = Brush.linearGradient(listOf(ColorAzul, ColorMorado))
+            )
         ) {
             Text(
-                text = "Guardar",
-                fontSize = 15.sp,
+                text = "Continuar",
+                fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // ---------- Botón Ver historial ----------
         Button(
             onClick = onVerHistorial,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
+                .height(56.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White,
                 contentColor   = ColorTexto
             ),
-            border = ButtonDefaults.outlinedButtonBorder
+            border = BorderStroke(1.dp, Color(0xFFE0E0E8))
         ) {
             Text(
                 text = "Ver mi historial",
-                fontSize = 15.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -208,26 +194,40 @@ fun PantallaEstadoAnimo(
     }
 }
 
-// -------------------------------------------------------
-// Item de estado de ánimo (Card clickeable)
-// Basado en PDF - Cards en listas
-// State Hoisting: recibe estado y evento desde el padre
-// -------------------------------------------------------
 @Composable
 fun ItemEstadoAnimo(
     estado: EstadoAnimo,
     seleccionado: Boolean,
     onClick: () -> Unit
 ) {
-    // Escala visual cuando está seleccionado
-    val alpha = if (seleccionado) 1f else 0.85f
+    val baseColor = Color(estado.color)
+
+    val borderColor = Color(
+        red = (baseColor.red * 0.65f),
+        green = (baseColor.green * 0.65f),
+        blue = (baseColor.blue * 0.65f),
+        alpha = 1f
+    )
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(60.dp)
+            .shadow(
+                elevation = if (seleccionado) 12.dp else 2.dp,
+                shape = RoundedCornerShape(16.dp)
+            )
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(estado.color).copy(alpha = alpha))
+            .background(baseColor)
+            .then(
+                if (seleccionado) {
+                    Modifier.border(
+                        width = 4.dp,
+                        color = borderColor,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                } else Modifier
+            )
             .clickable { onClick() },
         contentAlignment = Alignment.CenterStart
     ) {
@@ -235,31 +235,22 @@ fun ItemEstadoAnimo(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(text = estado.emoji, fontSize = 26.sp)
+
+            Spacer(modifier = Modifier.width(12.dp))
+
             Text(
                 text = estado.nombre,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
                 color = Color.White
             )
-            // Indicador de seleccionado
-            if (seleccionado) {
-                Text(
-                    text = "✓",
-                    fontSize = 18.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
         }
     }
 }
 
-// -------------------------------------------------------
-// Preview
-// -------------------------------------------------------
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PantallaEstadoAnimoPreview() {
