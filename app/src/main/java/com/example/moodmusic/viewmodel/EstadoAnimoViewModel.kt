@@ -23,7 +23,7 @@ class EstadoAnimoViewModel : ViewModel() {
         EstadoAnimo(nombre = "Feliz",     color = 0xFF26C6DA, emoji = "😊"),
         EstadoAnimo(nombre = "Motivado",  color = 0xFF42A5F5, emoji = "💪"),
         EstadoAnimo(nombre = "Inspirado", color = 0xFFAB47BC, emoji = "✨"),
-        EstadoAnimo(nombre = "En paz",    color = 0xFF66BB6A, emoji = "😌"),
+        EstadoAnimo(nombre = "En paz",    color = 0xFF66BB6A, emoji = "\uD83D\uDD4A\uFE0F"),
         EstadoAnimo(nombre = "Reflexivo", color = 0xFF1565C0, emoji = "🤔"),
         EstadoAnimo(nombre = "Triste",    color = 0xFF78909C, emoji = "😢"),
         EstadoAnimo(nombre = "Enojado",   color = 0xFFE53935, emoji = "😠")
