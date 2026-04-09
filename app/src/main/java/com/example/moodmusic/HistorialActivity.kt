@@ -56,7 +56,7 @@ class HistorialActivity : ComponentActivity() {
                     onVolver = { finish() },
                     onVerDetalle = { estado ->
                         val intent = Intent(this, DetalleHistorialActivity::class.java).apply {
-                            Intent.putExtra("estado", estado)
+                            putExtra("estado", estado)
                         }
                         startActivity(intent)
                     }
@@ -88,7 +88,7 @@ fun PantallaHistorial(
         val cal = Calendar.getInstance()
         cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
         cal.add(Calendar.WEEK_OF_YEAR, -semanaSeleccionada)
-        
+
         for (i in 0..6) {
             val diaCal = cal.clone() as Calendar
             diaCal.add(Calendar.DAY_OF_YEAR, i)
@@ -125,7 +125,7 @@ fun PantallaHistorial(
                     modifier = Modifier.size(30.dp)
                 )
             }
-            
+
             Text(
                 text = "Tu historial",
                 fontSize = 28.sp,
@@ -192,13 +192,13 @@ fun PantallaHistorial(
                 val diaStr = cal.get(Calendar.DAY_OF_MONTH).toString()
                 val mesStr = (cal.get(Calendar.MONTH) + 1).toString()
                 val anioStr = cal.get(Calendar.YEAR).toString()
-                
-                val estadoDelDia = listaEstados.find { 
-                    it.dia == diaStr && it.mes == mesStr && it.anio == anioStr 
+
+                val estadoDelDia = listaEstados.find {
+                    it.dia == diaStr && it.mes == mesStr && it.anio == anioStr
                 }
-                
+
                 val fechaFormateada = formatoDiaTexto.format(cal.time).replaceFirstChar { it.uppercase() }
-                
+
                 ItemHistorialDia(
                     fechaLabel = fechaFormateada,
                     estado = estadoDelDia,
@@ -212,7 +212,7 @@ fun PantallaHistorial(
 @Composable
 fun ItemHistorialDia(fechaLabel: String, estado: EstadoAnimoEntity?, onClick: () -> Unit) {
     val registrado = estado != null
-    
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -253,9 +253,9 @@ fun ItemHistorialDia(fechaLabel: String, estado: EstadoAnimoEntity?, onClick: ()
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "(${estado.nombreEstado})", 
-                        color = Color.White, 
-                        fontSize = 16.sp, 
+                        text = "(${estado.nombreEstado})",
+                        color = Color.White,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
