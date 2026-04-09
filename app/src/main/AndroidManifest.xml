@@ -41,6 +41,24 @@
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
+        <!-- Registrar Estado -->
+        <activity
+            android:name=".RegistrarEstadoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <!-- Historial -->
+        <activity
+            android:name=".HistorialActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <!-- Detalle Historial -->
+        <activity
+            android:name=".DetalleHistorialActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
     </application>
 
 </manifest>
