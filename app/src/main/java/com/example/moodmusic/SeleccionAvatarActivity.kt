@@ -1,7 +1,6 @@
 package com.example.moodmusic
 
-
-
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,8 +22,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import com.example.moodmusic.viewmodel.UsuarioViewModel
 
 class SeleccionAvatarActivity : ComponentActivity() {
+
+    private val viewModel: UsuarioViewModel by lazy {
+        ViewModelProvider.AndroidViewModelFactory
+            .getInstance(application)
+            .create(UsuarioViewModel::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -33,7 +41,18 @@ class SeleccionAvatarActivity : ComponentActivity() {
             PantallaSeleccionAvatar(
                 onVolver = { finish() },
                 onContinuar = { avatarSeleccionado ->
-                    // TODO: guardar avatar
+
+                    // 🔥 CORRECTO: guardar en BD + estado
+                    viewModel.actualizarAvatar(avatarSeleccionado)
+
+                    // 🔥 navegar a siguiente pantalla
+                    val intent = Intent(
+                        this,
+                        EstadoAnimoActivity::class.java
+                    )
+
+                    startActivity(intent)
+                    finish()
                 }
             )
         }
@@ -68,7 +87,6 @@ fun PantallaSeleccionAvatar(
 
         Spacer(modifier = Modifier.height(50.dp))
 
-        // 🔙 Botón volver estilo tu app
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
             Box(
                 modifier = Modifier
@@ -99,7 +117,6 @@ fun PantallaSeleccionAvatar(
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // 🎨 CONTENEDOR COMO EN TU DISEÑO
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -131,7 +148,6 @@ fun PantallaSeleccionAvatar(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // 🔘 Botón continuar
         Button(
             onClick = {
                 avatarSeleccionado?.let { onContinuar(it) }
@@ -189,6 +205,3 @@ fun ItemAvatar(
         )
     }
 }
-
-
-
