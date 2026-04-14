@@ -15,5 +15,9 @@ data class UsuarioEntity(
     val apellido: String,
     val edad: String,
     val correo: String,
-    val contrasena: String
+    val contrasena: String,
+    var avatar: Int
 ) : Serializable
+
+
+

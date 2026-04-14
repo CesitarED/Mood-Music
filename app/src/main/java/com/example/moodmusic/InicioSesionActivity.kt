@@ -34,7 +34,6 @@ import com.example.moodmusic.viewmodel.UsuarioViewModel
 // -------------------------------------------------------
 class InicioSesionActivity : ComponentActivity() {
 
-    // PDF 3 - igual que el profesor usa AndroidViewModel
     private val viewModel: UsuarioViewModel by lazy {
         ViewModelProvider.AndroidViewModelFactory
             .getInstance(application)
@@ -44,24 +43,42 @@ class InicioSesionActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             MoodMusicTheme {
 
                 val loginExitoso = viewModel.loginExitoso
                 val mensajeError = viewModel.mensajeError
 
-                // Cuando el login es exitoso navega a EstadoAnimoActivity
                 LaunchedEffect(loginExitoso) {
                     if (loginExitoso) {
-                        val intent = Intent(
-                            this@InicioSesionActivity,
-                            EstadoAnimoActivity::class.java
-                        )
-                        // Enviamos el usuario logueado a la siguiente Activity
-                        intent.putExtra("usuario", viewModel.usuarioActual)
-                        startActivity(intent)
-                        viewModel.limpiarEstados()
-                        finish()
+
+                        val usuario = viewModel.usuarioActual
+
+                        usuario?.let {
+
+                            if (usuario.avatar == -1) {
+                                // 🔴 NO tiene avatar → seleccionar
+                                val intent = Intent(
+                                    this@InicioSesionActivity,
+                                    SeleccionAvatarActivity::class.java
+                                )
+                                intent.putExtra("usuario", usuario)
+                                startActivity(intent)
+
+                            } else {
+                                // 🟢 YA tiene avatar → ir directo
+                                val intent = Intent(
+                                    this@InicioSesionActivity,
+                                    EstadoAnimoActivity::class.java
+                                )
+                                intent.putExtra("usuario", usuario)
+                                startActivity(intent)
+                            }
+
+                            viewModel.limpiarEstados()
+                            finish()
+                        }
                     }
                 }
 
@@ -78,7 +95,6 @@ class InicioSesionActivity : ComponentActivity() {
         }
     }
 }
-
 // -------------------------------------------------------
 // Pantalla Login
 // -------------------------------------------------------

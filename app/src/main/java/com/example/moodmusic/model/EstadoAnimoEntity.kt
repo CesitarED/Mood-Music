@@ -16,5 +16,6 @@ data class EstadoAnimoEntity(
     val dia: String,
     val mes: String,
     val anio: String,
-    val fechaCompleta: Long // Timestamp para ordenar
+    val fechaCompleta: Long, // Timestamp para ordenar
+    val avatar: Int = -1 // Nuevo campo para guardar el avatar del usuario en ese momento
 ) : Serializable

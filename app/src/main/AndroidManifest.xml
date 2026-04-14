@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MoodMusic">
 
-        <!-- Pantalla de inicio (Splash) - LAUNCHER principal -->
+        <!-- Pantalla de inicio -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -32,6 +32,12 @@
         <!-- Registro -->
         <activity
             android:name=".RegistroActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <!-- 🔥 NUEVA: Selección de Avatar -->
+        <activity
+            android:name=".SeleccionAvatarActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 

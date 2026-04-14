@@ -97,6 +97,10 @@ fun PantallaHistorial(
         lista
     }
 
+    // Formateadores para comparar con la base de datos
+    val sdfDia = SimpleDateFormat("d", Locale("es", "ES"))
+    val sdfMes = SimpleDateFormat("MMMM", Locale("es", "ES"))
+    val sdfAnio = SimpleDateFormat("yyyy", Locale("es", "ES"))
     val formatoDiaTexto = SimpleDateFormat("EEE d MMM", Locale("es", "ES"))
 
     Column(
@@ -189,10 +193,11 @@ fun PantallaHistorial(
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             items(diasDeLaSemana) { cal ->
-                val diaStr = cal.get(Calendar.DAY_OF_MONTH).toString()
-                val mesStr = (cal.get(Calendar.MONTH) + 1).toString()
-                val anioStr = cal.get(Calendar.YEAR).toString()
+                val diaStr = sdfDia.format(cal.time)
+                val mesStr = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
+                val anioStr = sdfAnio.format(cal.time)
 
+                // Búsqueda del estado guardado coincidiendo con el nuevo formato (nombre del mes)
                 val estadoDelDia = listaEstados.find {
                     it.dia == diaStr && it.mes == mesStr && it.anio == anioStr
                 }
@@ -232,7 +237,6 @@ fun ItemHistorialDia(fechaLabel: String, estado: EstadoAnimoEntity?, onClick: ()
         )
         if (registrado) {
             Spacer(modifier = Modifier.height(12.dp))
-            // Cajón con color completo
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
