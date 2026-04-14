@@ -1,6 +1,7 @@
 package com.example.moodmusic
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import com.example.moodmusic.model.UsuarioEntity
+import com.example.moodmusic.ui.theme.MoodMusicTheme
 import com.example.moodmusic.viewmodel.UsuarioViewModel
 
 class SeleccionAvatarActivity : ComponentActivity() {
@@ -37,24 +40,38 @@ class SeleccionAvatarActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // 1. Obtener el usuario del intent
+        val usuario = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("usuario", UsuarioEntity::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getSerializableExtra("usuario") as? UsuarioEntity
+        }
+
         setContent {
-            PantallaSeleccionAvatar(
-                onVolver = { finish() },
-                onContinuar = { avatarSeleccionado ->
+            MoodMusicTheme {
+                PantallaSeleccionAvatar(
+                    onVolver = { finish() },
+                    onContinuar = { avatarSeleccionado ->
 
-                    // 🔥 CORRECTO: guardar en BD + estado
-                    viewModel.actualizarAvatar(avatarSeleccionado)
+                        // 2. Actualizar en BD y en el objeto local
+                        viewModel.actualizarAvatar(avatarSeleccionado)
+                        
+                        // Actualizar el objeto usuario para pasarlo a la siguiente pantalla
+                        usuario?.avatar = avatarSeleccionado
 
-                    // 🔥 navegar a siguiente pantalla
-                    val intent = Intent(
-                        this,
-                        EstadoAnimoActivity::class.java
-                    )
+                        // 3. Pasar el usuario a la siguiente pantalla para que NO sea null
+                        val intent = Intent(
+                            this@SeleccionAvatarActivity,
+                            EstadoAnimoActivity::class.java
+                        )
+                        intent.putExtra("usuario", usuario)
 
-                    startActivity(intent)
-                    finish()
-                }
-            )
+                        startActivity(intent)
+                        finish()
+                    }
+                )
+            }
         }
     }
 }

@@ -3,10 +3,6 @@ package com.example.moodmusic.model
 import android.content.Context
 import androidx.room.Room
 
-// PDF 3 - Room
-// object = singleton, una sola instancia en toda la app
-// Igual que PersonaRepository en el PDF 1
-// Garantiza que no haya múltiples conexiones a la BD
 object DatabaseProvider {
 
     @Volatile
@@ -18,7 +14,9 @@ object DatabaseProvider {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "moodmusic_db"
-            ).build()
+            )
+            .fallbackToDestructiveMigration() // 🔥 Borra la BD vieja y crea la nueva si el esquema cambia
+            .build()
             INSTANCE = instance
             instance
         }
