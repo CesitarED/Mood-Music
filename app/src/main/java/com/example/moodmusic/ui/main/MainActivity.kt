@@ -1,4 +1,4 @@
-package com.example.moodmusic
+package com.example.moodmusic.ui.main
 
 import android.app.Activity
 import android.content.Intent
@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.moodmusic.ui.auth.InicioSesionActivity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 import kotlinx.coroutines.delay
 
@@ -50,26 +51,19 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// -------------------------------------------------------
-// Pantalla de carga con navegación automática
-// -------------------------------------------------------
 @Composable
 fun PantallaCarga() {
-
     val context = LocalContext.current
 
-    // Navega a InicioSesionActivity después de 3 segundos
     LaunchedEffect(Unit) {
         delay(3000)
+        // Ahora siempre enviamos al login al iniciar la app
         val intent = Intent(context, InicioSesionActivity::class.java)
         context.startActivity(intent)
         (context as Activity).finish()
     }
 
-    // Estado de los puntos (PDF 2 - mutableStateOf + remember)
     var puntos by remember { mutableStateOf("") }
-
-    // Animación infinita para los puntos
     val infiniteTransition = rememberInfiniteTransition(label = "puntos")
     val paso by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -81,7 +75,6 @@ fun PantallaCarga() {
         label = "paso"
     )
 
-    // Actualiza los puntos según el paso (PDF 2 - Recomposition)
     puntos = when (paso.toInt()) {
         0    -> "."
         1    -> ".."
@@ -89,7 +82,6 @@ fun PantallaCarga() {
         else -> ""
     }
 
-    // Column principal (PDF 1 - Layouts)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -97,12 +89,8 @@ fun PantallaCarga() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-
         LogoSplash()
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Nombre de la app
         Text(
             text = "MOOD & MUSIC",
             fontSize = 20.sp,
@@ -110,20 +98,14 @@ fun PantallaCarga() {
             letterSpacing = 3.sp,
             color = ColorTexto
         )
-
         Spacer(modifier = Modifier.height(32.dp))
-
-        // Slogan
         Text(
             text = "Siente tu música",
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
             color = ColorTexto
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Puntos animados (PDF 2 - estado reactivo)
         Text(
             text = puntos,
             fontSize = 24.sp,
@@ -133,9 +115,6 @@ fun PantallaCarga() {
     }
 }
 
-// -------------------------------------------------------
-// Logo para el Splash
-// -------------------------------------------------------
 @Composable
 fun LogoSplash() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -154,9 +133,6 @@ fun LogoSplash() {
     }
 }
 
-// -------------------------------------------------------
-// Preview
-// -------------------------------------------------------
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PantallaCargaPreview() {

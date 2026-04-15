@@ -1,4 +1,4 @@
-package com.example.moodmusic.model
+package com.example.moodmusic.data.model
 
 import java.io.Serializable
 

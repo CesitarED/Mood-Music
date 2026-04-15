@@ -1,4 +1,4 @@
-package com.example.moodmusic
+package com.example.moodmusic.ui.registro_estado
 
 import android.content.Intent
 import android.os.Build
@@ -22,16 +22,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.moodmusic.model.EstadoAnimo
-import com.example.moodmusic.model.UsuarioEntity
-import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.data.model.EstadoAnimo
+import com.example.moodmusic.data.model.UsuarioEntity
+import com.example.moodmusic.ui.historial.HistorialActivity
+import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.EstadoAnimoViewModel
 
 class EstadoAnimoActivity : ComponentActivity() {
@@ -111,7 +111,6 @@ fun PantallaEstadoAnimo(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Lista de estados de ánimo
         viewModel.listaEstados.forEach { estado ->
             ItemEstadoAnimo(
                 estado = estado,
@@ -126,7 +125,6 @@ fun PantallaEstadoAnimo(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ---------- Mensaje de error ----------
         if (mensajeError.isNotEmpty()) {
             Text(
                 text = mensajeError,
@@ -139,10 +137,9 @@ fun PantallaEstadoAnimo(
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        // ---------- Botón Continuar ----------
         Button(
             onClick = {
-                if (viewModel.guardarEstado()) {
+                if (viewModel.estadoSeleccionado != null) {
                     viewModel.estadoSeleccionado?.let { onGuardar(it) }
                 } else {
                     mensajeError = "Debe seleccionar una emoción"
@@ -170,7 +167,6 @@ fun PantallaEstadoAnimo(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ---------- Botón Ver historial ----------
         Button(
             onClick = onVerHistorial,
             modifier = Modifier

@@ -1,4 +1,4 @@
-package com.example.moodmusic.model
+package com.example.moodmusic.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -8,7 +8,7 @@ import java.io.Serializable
 data class EstadoAnimoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val username: String, // Relación con el usuario
+    val username: String,
     val nombreEstado: String,
     val emojiEstado: String,
     val colorEstado: Long,
@@ -16,6 +16,6 @@ data class EstadoAnimoEntity(
     val dia: String,
     val mes: String,
     val anio: String,
-    val fechaCompleta: Long, // Timestamp para ordenar
-    val avatar: Int = -1 // Nuevo campo para guardar el avatar del usuario en ese momento
+    val fechaCompleta: Long,
+    val avatar: Int = -1
 ) : Serializable

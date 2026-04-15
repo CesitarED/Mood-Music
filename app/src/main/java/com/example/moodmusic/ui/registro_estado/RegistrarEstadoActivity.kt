@@ -1,4 +1,4 @@
-package com.example.moodmusic
+package com.example.moodmusic.ui.registro_estado
 
 import android.os.Build
 import android.os.Bundle
@@ -25,14 +25,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.moodmusic.model.DatabaseProvider
-import com.example.moodmusic.model.EstadoAnimo
-import com.example.moodmusic.model.EstadoAnimoEntity
-import com.example.moodmusic.model.UsuarioEntity
-import com.example.moodmusic.ui.theme.MoodMusicTheme
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.moodmusic.data.model.EstadoAnimo
+import com.example.moodmusic.data.model.UsuarioEntity
+import com.example.moodmusic.ui.theme.*
+import com.example.moodmusic.viewmodel.EstadoAnimoViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -75,13 +72,13 @@ class RegistrarEstadoActivity : ComponentActivity() {
 fun PantallaRegistrarEstado(
     usuario: UsuarioEntity?,
     estadoAnimo: EstadoAnimo?,
+    viewModel: EstadoAnimoViewModel = viewModel(),
     onVolver: () -> Unit,
     onGuardarExitoso: () -> Unit
 ) {
     var nota by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    // 🔥 CORRECCIÓN DE FECHA (ZONA HORARIA COLOMBIA)
     val timeZone = TimeZone.getTimeZone("America/Bogota")
     val calendario = Calendar.getInstance(timeZone)
 
@@ -192,41 +189,10 @@ fun PantallaRegistrarEstado(
         Button(
             onClick = {
                 if (usuario != null && estadoAnimo != null) {
-
-                    val nuevoEstado = EstadoAnimoEntity(
-                        username = usuario.username,
-                        nombreEstado = estadoAnimo.nombre,
-                        emojiEstado = estadoAnimo.emoji,
-                        colorEstado = estadoAnimo.color,
-                        nota = nota,
-                        dia = diaActual,
-                        mes = mesActual,
-                        anio = anioActual,
-                        fechaCompleta = System.currentTimeMillis(),
-                        avatar = usuario.avatar
-                    )
-
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            DatabaseProvider.getDatabase(context)
-                                .estadoAnimoDao()
-                                .insertar(nuevoEstado)
-
-                            CoroutineScope(Dispatchers.Main).launch {
-                                onGuardarExitoso()
-                            }
-
-                        } catch (e: Exception) {
-                            CoroutineScope(Dispatchers.Main).launch {
-                                Toast.makeText(
-                                    context,
-                                    "Error al guardar: ${e.message}",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        }
+                    viewModel.seleccionarEstado(estadoAnimo)
+                    viewModel.guardarEstado(usuario.username, nota, usuario.avatar) {
+                        onGuardarExitoso()
                     }
-
                 } else {
                     Toast.makeText(
                         context,

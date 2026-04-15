@@ -1,10 +1,9 @@
-package com.example.moodmusic.model
+package com.example.moodmusic.data.local.database
 
 import android.content.Context
 import androidx.room.Room
 
 object DatabaseProvider {
-
     @Volatile
     private var INSTANCE: AppDatabase? = null
 
@@ -15,7 +14,7 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 "moodmusic_db"
             )
-            .fallbackToDestructiveMigration() // 🔥 Borra la BD vieja y crea la nueva si el esquema cambia
+            .fallbackToDestructiveMigration()
             .build()
             INSTANCE = instance
             instance

@@ -6,8 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.moodmusic.model.DatabaseProvider
-import com.example.moodmusic.model.EstadoAnimoEntity
+import com.example.moodmusic.data.local.database.DatabaseProvider
+import com.example.moodmusic.data.model.EstadoAnimoEntity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 

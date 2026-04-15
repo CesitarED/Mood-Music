@@ -1,4 +1,4 @@
-package com.example.moodmusic
+package com.example.moodmusic.ui.avatar
 
 import android.content.Intent
 import android.os.Build
@@ -24,7 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
-import com.example.moodmusic.model.UsuarioEntity
+import com.example.moodmusic.R
+import com.example.moodmusic.data.model.UsuarioEntity
+import com.example.moodmusic.ui.main.*
+import com.example.moodmusic.ui.registro_estado.EstadoAnimoActivity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 import com.example.moodmusic.viewmodel.UsuarioViewModel
 
@@ -58,14 +61,14 @@ class SeleccionAvatarActivity : ComponentActivity() {
                         viewModel.actualizarAvatar(avatarSeleccionado)
                         
                         // Actualizar el objeto usuario para pasarlo a la siguiente pantalla
-                        usuario?.avatar = avatarSeleccionado
+                        val updatedUsuario = usuario?.copy(avatar = avatarSeleccionado)
 
                         // 3. Pasar el usuario a la siguiente pantalla para que NO sea null
                         val intent = Intent(
                             this@SeleccionAvatarActivity,
                             EstadoAnimoActivity::class.java
                         )
-                        intent.putExtra("usuario", usuario)
+                        intent.putExtra("usuario", updatedUsuario)
 
                         startActivity(intent)
                         finish()

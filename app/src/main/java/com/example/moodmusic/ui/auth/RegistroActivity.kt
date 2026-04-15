@@ -1,5 +1,6 @@
-package com.example.moodmusic
+package com.example.moodmusic.ui.auth
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -30,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 import com.example.moodmusic.viewmodel.UsuarioViewModel
 
@@ -38,9 +40,6 @@ import com.example.moodmusic.viewmodel.UsuarioViewModel
 // -------------------------------------------------------
 class RegistroActivity : ComponentActivity() {
 
-    // PDF 3 - igual que el profesor:
-    // class PersonaViewModel(application: Application) : AndroidViewModel(application)
-    // se instancia con ViewModelProvider pasando la application
     private val viewModel: UsuarioViewModel by lazy {
         ViewModelProvider.AndroidViewModelFactory
             .getInstance(application)
@@ -56,7 +55,6 @@ class RegistroActivity : ComponentActivity() {
                 val registroExitoso = viewModel.registroExitoso
                 val mensajeError    = viewModel.mensajeError
 
-                // Cuando el registro es exitoso vuelve al login
                 LaunchedEffect(registroExitoso) {
                     if (registroExitoso) {
                         Toast.makeText(

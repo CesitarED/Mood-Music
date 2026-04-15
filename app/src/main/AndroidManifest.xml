@@ -14,7 +14,7 @@
 
         <!-- Pantalla de inicio -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.main.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MoodMusic">
             <intent-filter>
@@ -25,43 +25,43 @@
 
         <!-- Login -->
         <activity
-            android:name=".InicioSesionActivity"
+            android:name=".ui.auth.InicioSesionActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
         <!-- Registro -->
         <activity
-            android:name=".RegistroActivity"
+            android:name=".ui.auth.RegistroActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
-        <!-- 🔥 NUEVA: Selección de Avatar -->
+        <!-- Selección de Avatar -->
         <activity
-            android:name=".SeleccionAvatarActivity"
+            android:name=".ui.avatar.SeleccionAvatarActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
         <!-- Estado de Ánimo -->
         <activity
-            android:name=".EstadoAnimoActivity"
+            android:name=".ui.registro_estado.EstadoAnimoActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
         <!-- Registrar Estado -->
         <activity
-            android:name=".RegistrarEstadoActivity"
+            android:name=".ui.registro_estado.RegistrarEstadoActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
         <!-- Historial -->
         <activity
-            android:name=".HistorialActivity"
+            android:name=".ui.historial.HistorialActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
         <!-- Detalle Historial -->
         <activity
-            android:name=".DetalleHistorialActivity"
+            android:name=".ui.historial.DetalleHistorialActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 

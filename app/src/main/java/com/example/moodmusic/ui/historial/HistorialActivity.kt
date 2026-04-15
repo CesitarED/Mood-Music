@@ -1,4 +1,4 @@
-package com.example.moodmusic
+package com.example.moodmusic.ui.historial
 
 import android.content.Intent
 import android.os.Build
@@ -30,9 +30,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.moodmusic.model.EstadoAnimoEntity
-import com.example.moodmusic.model.UsuarioEntity
-import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.data.model.EstadoAnimoEntity
+import com.example.moodmusic.data.model.UsuarioEntity
+import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.HistorialViewModel
 import java.text.SimpleDateFormat
 import java.util.*

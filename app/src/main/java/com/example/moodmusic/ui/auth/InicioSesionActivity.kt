@@ -1,4 +1,4 @@
-package com.example.moodmusic
+package com.example.moodmusic.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,8 +27,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import com.example.moodmusic.data.local.database.DatabaseProvider
+import com.example.moodmusic.ui.avatar.SeleccionAvatarActivity
+import com.example.moodmusic.ui.main.*
+import com.example.moodmusic.ui.registro_estado.EstadoAnimoActivity
+import com.example.moodmusic.ui.historial.HistorialActivity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 import com.example.moodmusic.viewmodel.UsuarioViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.util.Calendar
 
 // -------------------------------------------------------
 // InicioSesionActivity
@@ -49,35 +59,42 @@ class InicioSesionActivity : ComponentActivity() {
 
                 val loginExitoso = viewModel.loginExitoso
                 val mensajeError = viewModel.mensajeError
+                val context = LocalContext.current
 
                 LaunchedEffect(loginExitoso) {
                     if (loginExitoso) {
-
                         val usuario = viewModel.usuarioActual
+                        usuario?.let { user ->
+                            // Lógica de redirección después del login
+                            CoroutineScope(Dispatchers.IO).launch {
+                                val db = DatabaseProvider.getDatabase(context)
+                                
+                                if (user.avatar == -1) {
+                                    // 🔴 NO tiene avatar
+                                    val intent = Intent(this@InicioSesionActivity, SeleccionAvatarActivity::class.java)
+                                    intent.putExtra("usuario", user)
+                                    startActivity(intent)
+                                } else {
+                                    // 🟢 YA tiene avatar -> verificar registro de hoy
+                                    val cal = Calendar.getInstance()
+                                    val registroHoy = db.estadoAnimoDao().obtenerRegistroHoy(
+                                        user.username,
+                                        cal.get(Calendar.DAY_OF_MONTH).toString(),
+                                        (cal.get(Calendar.MONTH) + 1).toString(),
+                                        cal.get(Calendar.YEAR).toString()
+                                    )
 
-                        usuario?.let {
-
-                            if (usuario.avatar == -1) {
-                                // 🔴 NO tiene avatar → seleccionar
-                                val intent = Intent(
-                                    this@InicioSesionActivity,
-                                    SeleccionAvatarActivity::class.java
-                                )
-                                intent.putExtra("usuario", usuario)
-                                startActivity(intent)
-
-                            } else {
-                                // 🟢 YA tiene avatar → ir directo
-                                val intent = Intent(
-                                    this@InicioSesionActivity,
-                                    EstadoAnimoActivity::class.java
-                                )
-                                intent.putExtra("usuario", usuario)
-                                startActivity(intent)
+                                    val intent = if (registroHoy != null) {
+                                        Intent(this@InicioSesionActivity, HistorialActivity::class.java)
+                                    } else {
+                                        Intent(this@InicioSesionActivity, EstadoAnimoActivity::class.java)
+                                    }
+                                    intent.putExtra("usuario", user)
+                                    startActivity(intent)
+                                }
+                                viewModel.limpiarEstados()
+                                finish()
                             }
-
-                            viewModel.limpiarEstados()
-                            finish()
                         }
                     }
                 }
