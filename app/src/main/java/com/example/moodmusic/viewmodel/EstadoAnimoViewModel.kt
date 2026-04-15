@@ -10,7 +10,8 @@ import com.example.moodmusic.data.local.database.DatabaseProvider
 import com.example.moodmusic.data.model.EstadoAnimo
 import com.example.moodmusic.data.model.EstadoAnimoEntity
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.util.*
 
 class EstadoAnimoViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -37,31 +38,25 @@ class EstadoAnimoViewModel(application: Application) : AndroidViewModel(applicat
         estadoSeleccionado = estado
     }
 
-    fun verificarRegistroHoy(username: String) {
-        viewModelScope.launch {
-            val cal = Calendar.getInstance()
-            val dia = cal.get(Calendar.DAY_OF_MONTH).toString()
-            val mes = (cal.get(Calendar.MONTH) + 1).toString()
-            val anio = cal.get(Calendar.YEAR).toString()
-            
-            val registro = db.estadoAnimoDao().obtenerRegistroHoy(username, dia, mes, anio)
-            registroHoyExistente = registro != null
-        }
-    }
+    // Formateadores consistentes con HistorialActivity
+    private val sdfDia = SimpleDateFormat("d", Locale("es", "ES"))
+    private val sdfMes = SimpleDateFormat("MMMM", Locale("es", "ES"))
+    private val sdfAnio = SimpleDateFormat("yyyy", Locale("es", "ES"))
 
     fun guardarEstado(username: String, nota: String, avatar: Int, onComplete: () -> Unit) {
         viewModelScope.launch {
             estadoSeleccionado?.let { estado ->
                 val cal = Calendar.getInstance()
+                
                 val nuevoEstado = EstadoAnimoEntity(
                     username = username,
                     nombreEstado = estado.nombre,
                     emojiEstado = estado.emoji,
                     colorEstado = estado.color,
                     nota = nota,
-                    dia = cal.get(Calendar.DAY_OF_MONTH).toString(),
-                    mes = (cal.get(Calendar.MONTH) + 1).toString(),
-                    anio = cal.get(Calendar.YEAR).toString(),
+                    dia = sdfDia.format(cal.time),
+                    mes = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() },
+                    anio = sdfAnio.format(cal.time),
                     fechaCompleta = System.currentTimeMillis(),
                     avatar = avatar
                 )
