@@ -18,7 +18,9 @@ object DatabaseProvider {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "moodmusic_db"
-            ).build()
+            )
+            .fallbackToDestructiveMigration() // Permite recrear la BD si cambia el esquema sin migraciones manuales
+            .build()
             INSTANCE = instance
             instance
         }

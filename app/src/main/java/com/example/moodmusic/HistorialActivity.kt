@@ -55,7 +55,7 @@ class HistorialActivity : ComponentActivity() {
                     usuario = usuario,
                     onVolver = { finish() },
                     onVerDetalle = { estado ->
-                        val intent = Intent(this, DetalleHistorialActivity::class.java).apply {
+                        val intent = Intent(this@HistorialActivity, DetalleHistorialActivity::class.java).apply {
                             putExtra("estado", estado)
                         }
                         startActivity(intent)
@@ -88,7 +88,7 @@ fun PantallaHistorial(
         val cal = Calendar.getInstance()
         cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
         cal.add(Calendar.WEEK_OF_YEAR, -semanaSeleccionada)
-
+        
         for (i in 0..6) {
             val diaCal = cal.clone() as Calendar
             diaCal.add(Calendar.DAY_OF_YEAR, i)
@@ -106,6 +106,7 @@ fun PantallaHistorial(
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // ... (resto del código igual, usando los colores de MainActivity)
         Spacer(modifier = Modifier.height(50.dp))
 
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
@@ -125,7 +126,7 @@ fun PantallaHistorial(
                     modifier = Modifier.size(30.dp)
                 )
             }
-
+            
             Text(
                 text = "Tu historial",
                 fontSize = 28.sp,
@@ -192,13 +193,13 @@ fun PantallaHistorial(
                 val diaStr = cal.get(Calendar.DAY_OF_MONTH).toString()
                 val mesStr = (cal.get(Calendar.MONTH) + 1).toString()
                 val anioStr = cal.get(Calendar.YEAR).toString()
-
-                val estadoDelDia = listaEstados.find {
-                    it.dia == diaStr && it.mes == mesStr && it.anio == anioStr
+                
+                val estadoDelDia = listaEstados.find { 
+                    it.dia == diaStr && it.mes == mesStr && it.anio == anioStr 
                 }
-
+                
                 val fechaFormateada = formatoDiaTexto.format(cal.time).replaceFirstChar { it.uppercase() }
-
+                
                 ItemHistorialDia(
                     fechaLabel = fechaFormateada,
                     estado = estadoDelDia,
@@ -212,7 +213,7 @@ fun PantallaHistorial(
 @Composable
 fun ItemHistorialDia(fechaLabel: String, estado: EstadoAnimoEntity?, onClick: () -> Unit) {
     val registrado = estado != null
-
+    
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -232,7 +233,6 @@ fun ItemHistorialDia(fechaLabel: String, estado: EstadoAnimoEntity?, onClick: ()
         )
         if (registrado) {
             Spacer(modifier = Modifier.height(12.dp))
-            // Cajón con color completo
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -253,8 +253,8 @@ fun ItemHistorialDia(fechaLabel: String, estado: EstadoAnimoEntity?, onClick: ()
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "(${estado.nombreEstado})",
-                        color = Color.White,
+                        text = "(${estado.nombreEstado})", 
+                        color = Color.White, 
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
