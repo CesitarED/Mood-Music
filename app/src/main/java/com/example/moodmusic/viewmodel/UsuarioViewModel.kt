@@ -10,19 +10,12 @@ import com.example.moodmusic.model.DatabaseProvider
 import com.example.moodmusic.model.UsuarioEntity
 import kotlinx.coroutines.launch
 
-// PDF 3 - Room + ViewModel
-// AndroidViewModel recibe Application para inicializar
-// la base de datos con DatabaseProvider
-// Igual que PersonaViewModel en el PDF 3
 class UsuarioViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Obtiene el DAO directo desde DatabaseProvider
-    // Igual que el profesor: private val dao = DatabaseProvider.getDatabase(application).personaDao()
     private val dao = DatabaseProvider
         .getDatabase(application)
         .usuarioDao()
 
-    // Estado observable para la UI (PDF 2 - mutableStateOf)
     var mensajeError by mutableStateOf("")
         private set
 
@@ -36,12 +29,14 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     var usuarioActual by mutableStateOf<UsuarioEntity?>(null)
         private set
 
-    // Lista observable en tiempo real con Flow (PDF 3)
+    // Usuario recién registrado
+    var usuarioRegistrado: UsuarioEntity? = null
+        private set
+
     val listaUsuarios = dao.obtenerTodos()
 
     // -------------------------------------------------------
-    // Registrar usuario
-    // viewModelScope.launch ejecuta en hilo seguro (PDF 3)
+    // REGISTRO
     // -------------------------------------------------------
     fun registrar(
         username: String,
@@ -52,21 +47,29 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         contrasena: String
     ) {
         viewModelScope.launch {
-            // Verifica si ya existe
+
             val existe = dao.existeUsuario(username, correo)
+
             if (existe > 0) {
                 mensajeError = "El usuario o correo ya está registrado."
                 registroExitoso = false
             } else {
+
                 val usuario = UsuarioEntity(
                     username   = username,
                     nombre     = nombre,
                     apellido   = apellido,
                     edad       = edad,
                     correo     = correo,
-                    contrasena = contrasena
+                    contrasena = contrasena,
+                    avatar     = -1 // 🔥 CAMBIO CLAVE (antes 0)
                 )
+
                 dao.insertar(usuario)
+
+                usuarioRegistrado = usuario
+                usuarioActual = usuario // 🔥 IMPORTANTE
+
                 registroExitoso = true
                 mensajeError = ""
             }
@@ -74,12 +77,11 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // -------------------------------------------------------
-    // Login
-    // Busca en la BD por nombre/username/correo + contraseña
+    // LOGIN
     // -------------------------------------------------------
     fun login(nombreOUsername: String, contrasena: String) {
         viewModelScope.launch {
-            // Busca por username, correo o nombre
+
             val usuario = dao.buscarPorUsername(nombreOUsername)
                 ?: dao.buscarPorCorreo(nombreOUsername)
                 ?: dao.buscarPorNombre(nombreOUsername)
@@ -95,14 +97,30 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    // Limpiar estados después de navegar
+    // -------------------------------------------------------
+    // ACTUALIZAR AVATAR
+    // -------------------------------------------------------
+    fun actualizarAvatar(avatar: Int) {
+        viewModelScope.launch {
+            usuarioActual?.let { usuario ->
+
+                val actualizado = usuario.copy(avatar = avatar)
+
+                dao.actualizar(actualizado)
+
+                usuarioActual = actualizado
+                usuarioRegistrado = actualizado // 🔥 IMPORTANTE
+            }
+        }
+    }
+
+    // -------------------------------------------------------
     fun limpiarEstados() {
         mensajeError = ""
         loginExitoso = false
         registroExitoso = false
     }
 
-    // Cerrar sesión
     fun cerrarSesion() {
         usuarioActual = null
     }

@@ -33,6 +33,7 @@ import com.example.moodmusic.ui.theme.MoodMusicTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
 class RegistrarEstadoActivity : ComponentActivity() {
@@ -80,10 +81,21 @@ fun PantallaRegistrarEstado(
     var nota by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    val calendario = Calendar.getInstance()
-    val diaActual = calendario.get(Calendar.DAY_OF_MONTH).toString()
-    val mesActual = (calendario.get(Calendar.MONTH) + 1).toString()
-    val anioActual = calendario.get(Calendar.YEAR).toString()
+    // 🔥 CORRECCIÓN DE FECHA (ZONA HORARIA COLOMBIA)
+    val timeZone = TimeZone.getTimeZone("America/Bogota")
+    val calendario = Calendar.getInstance(timeZone)
+
+    val sdfDia = SimpleDateFormat("d", Locale("es", "ES"))
+    val sdfMes = SimpleDateFormat("MMMM", Locale("es", "ES"))
+    val sdfAnio = SimpleDateFormat("yyyy", Locale("es", "ES"))
+
+    sdfDia.timeZone = timeZone
+    sdfMes.timeZone = timeZone
+    sdfAnio.timeZone = timeZone
+
+    val diaActual = sdfDia.format(calendario.time)
+    val mesActual = sdfMes.format(calendario.time).replaceFirstChar { it.uppercase() }
+    val anioActual = sdfAnio.format(calendario.time)
 
     val colorFondoCajon = estadoAnimo?.let { Color(it.color) } ?: Color(0xFFF0F0F0)
 
@@ -95,6 +107,7 @@ fun PantallaRegistrarEstado(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Spacer(modifier = Modifier.height(60.dp))
 
         Text(
@@ -107,7 +120,6 @@ fun PantallaRegistrarEstado(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Card de Emoción Elegida con el color completo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -129,7 +141,9 @@ fun PantallaRegistrarEstado(
                 ) {
                     Text(text = estadoAnimo?.emoji ?: "❓", fontSize = 28.sp)
                 }
+
                 Spacer(modifier = Modifier.width(16.dp))
+
                 Text(
                     text = estadoAnimo?.nombre ?: "Emoción elegida",
                     fontSize = 20.sp,
@@ -145,13 +159,11 @@ fun PantallaRegistrarEstado(
             text = "Nota personal (opcional)",
             fontSize = 18.sp,
             color = ColorSubtexto,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Campo de Nota
         OutlinedTextField(
             value = nota,
             onValueChange = { nota = it },
@@ -160,34 +172,27 @@ fun PantallaRegistrarEstado(
                 .height(150.dp)
                 .shadow(2.dp, RoundedCornerShape(16.dp))
                 .background(Color.White, RoundedCornerShape(16.dp)),
-            placeholder = { Text("Escribe lo que está influyendo en tu estado...", color = Color.LightGray) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
-            ),
+            placeholder = { Text("Escribe lo que está influyendo en tu estado...") },
             shape = RoundedCornerShape(16.dp)
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Fila de Fecha
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            FechaBox(label = "Día:", value = diaActual, color = ColorAzul)
-            FechaBox(label = "Mes:", value = mesActual, color = Color(0xFF4A69FF))
-            FechaBox(label = "Año:", value = anioActual, color = ColorMorado)
+            FechaBox("Día:", diaActual, ColorAzul)
+            FechaBox("Mes:", mesActual, Color(0xFF4A69FF))
+            FechaBox("Año:", anioActual, ColorMorado)
         }
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Botón Guardar
         Button(
             onClick = {
                 if (usuario != null && estadoAnimo != null) {
+
                     val nuevoEstado = EstadoAnimoEntity(
                         username = usuario.username,
                         nombreEstado = estadoAnimo.nombre,
@@ -197,37 +202,67 @@ fun PantallaRegistrarEstado(
                         dia = diaActual,
                         mes = mesActual,
                         anio = anioActual,
-                        fechaCompleta = System.currentTimeMillis()
+                        fechaCompleta = System.currentTimeMillis(),
+                        avatar = usuario.avatar
                     )
+
                     CoroutineScope(Dispatchers.IO).launch {
-                        DatabaseProvider.getDatabase(context).estadoAnimoDao().insertar(nuevoEstado)
-                        CoroutineScope(Dispatchers.Main).launch {
-                            onGuardarExitoso()
+                        try {
+                            DatabaseProvider.getDatabase(context)
+                                .estadoAnimoDao()
+                                .insertar(nuevoEstado)
+
+                            CoroutineScope(Dispatchers.Main).launch {
+                                onGuardarExitoso()
+                            }
+
+                        } catch (e: Exception) {
+                            CoroutineScope(Dispatchers.Main).launch {
+                                Toast.makeText(
+                                    context,
+                                    "Error al guardar: ${e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
                         }
                     }
+
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Error: Faltan datos del usuario o emoción",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = ColorTexto),
-            border = BorderStroke(1.5.dp, Brush.linearGradient(listOf(ColorAzul, ColorMorado)))
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,
+                contentColor = ColorTexto
+            ),
+            border = BorderStroke(
+                1.5.dp,
+                Brush.linearGradient(listOf(ColorAzul, ColorMorado))
+            )
         ) {
             Text("Guardar", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Botón Volver
         Button(
             onClick = onVolver,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = ColorTexto),
-            border = BorderStroke(1.dp, Color(0xFFE0E0E8))
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,
+                contentColor = ColorTexto
+            )
         ) {
             Text("Volver", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
         }
@@ -240,7 +275,7 @@ fun PantallaRegistrarEstado(
 fun FechaBox(label: String, value: String, color: Color) {
     Box(
         modifier = Modifier
-            .width(105.dp)
+            .width(115.dp)
             .height(50.dp)
             .shadow(4.dp, RoundedCornerShape(12.dp))
             .background(color, RoundedCornerShape(12.dp)),
@@ -250,7 +285,8 @@ fun FechaBox(label: String, value: String, color: Color) {
             text = "$label $value",
             color = Color.White,
             fontWeight = FontWeight.Bold,
-            fontSize = 15.sp
+            fontSize = 12.sp,
+            textAlign = TextAlign.Center
         )
     }
 }

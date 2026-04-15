@@ -66,7 +66,8 @@ fun PantallaDetalleHistorial(
     onVolver: () -> Unit
 ) {
     var estado by remember { mutableStateOf(estadoInicial) }
-    var nuevaNota by remember { mutableStateOf("") }
+    // Inicializamos la nota con la que ya existe en la base de datos
+    var notaEditable by remember { mutableStateOf(estadoInicial?.nota ?: "") }
     val context = LocalContext.current
     val scope = CoroutineScope(Dispatchers.Main)
 
@@ -80,6 +81,7 @@ fun PantallaDetalleHistorial(
     ) {
         Spacer(modifier = Modifier.height(50.dp))
 
+        // Cabecera
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
             Box(
                 modifier = Modifier
@@ -139,7 +141,7 @@ fun PantallaDetalleHistorial(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Cajón de emoción con color completo
+                // Cajón de emoción con su color original
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -160,7 +162,7 @@ fun PantallaDetalleHistorial(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
-                            text = "(${est.nombreEstado})",
+                            text = est.nombreEstado,
                             color = Color.White,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
@@ -168,69 +170,65 @@ fun PantallaDetalleHistorial(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Box(
+                Text(
+                    text = "Editar nota personal",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = ColorTexto,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Campo de texto para editar la nota (es opcional)
+                OutlinedTextField(
+                    value = notaEditable,
+                    onValueChange = { notaEditable = it },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp)
+                        .height(150.dp)
                         .shadow(2.dp, RoundedCornerShape(16.dp))
-                        .background(Color.White, RoundedCornerShape(16.dp))
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = if (est.nota.isEmpty()) "(Sin nota)" else est.nota,
-                        color = Color.Gray,
-                        fontSize = 15.sp
-                    )
-                }
+                        .background(Color.White, RoundedCornerShape(16.dp)),
+                    placeholder = { Text("¿Quieres añadir algo más?", color = Color.LightGray) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = ColorMorado.copy(alpha = 0.5f),
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        OutlinedTextField(
-            value = nuevaNota,
-            onValueChange = { nuevaNota = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .shadow(2.dp, RoundedCornerShape(16.dp))
-                .background(Color.White, RoundedCornerShape(16.dp)),
-            placeholder = { Text("(Nueva nota)", color = Color.LightGray) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
-            ),
-            shape = RoundedCornerShape(16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
+        // Botón Editar (Guardar cambios)
         Button(
             onClick = {
-                if (estado != null && nuevaNota.isNotEmpty()) {
-                    val estadoActualizado = estado!!.copy(nota = nuevaNota)
+                if (estado != null) {
+                    // Mantenemos emoción, avatar y fecha, solo actualizamos la nota
+                    val estadoActualizado = estado!!.copy(nota = notaEditable)
                     CoroutineScope(Dispatchers.IO).launch {
                         DatabaseProvider.getDatabase(context).estadoAnimoDao().insertar(estadoActualizado)
                         scope.launch {
                             estado = estadoActualizado
-                            nuevaNota = ""
-                            Toast.makeText(context, "Nota actualizada", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Registro actualizado", Toast.LENGTH_SHORT).show()
+                            onVolver() // Volvemos al historial tras guardar
                         }
                     }
                 }
             },
             modifier = Modifier
-                .fillMaxWidth(0.6f)
+                .fillMaxWidth(0.7f)
                 .height(52.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = ColorTexto),
             border = BorderStroke(1.5.dp, Brush.linearGradient(listOf(ColorAzul, ColorMorado)))
         ) {
-            Text("Editar", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            Text("Guardar cambios", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
         }
         
         Spacer(modifier = Modifier.height(40.dp))
@@ -251,7 +249,8 @@ fun PantallaDetalleHistorialPreview() {
                 dia = "7",
                 mes = "4",
                 anio = "2024",
-                fechaCompleta = System.currentTimeMillis()
+                fechaCompleta = System.currentTimeMillis(),
+                avatar = 1
             ),
             onVolver = {}
         )
