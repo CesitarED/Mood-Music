@@ -32,12 +32,14 @@ import com.example.moodmusic.ui.avatar.SeleccionAvatarActivity
 import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.registro_estado.EstadoAnimoActivity
 import com.example.moodmusic.ui.historial.HistorialActivity
+import com.example.moodmusic.ui.perfil.PerfilActivity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 import com.example.moodmusic.viewmodel.UsuarioViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.util.*
 
 // -------------------------------------------------------
 // InicioSesionActivity
@@ -76,16 +78,30 @@ class InicioSesionActivity : ComponentActivity() {
                                     startActivity(intent)
                                 } else {
                                     // 🟢 YA tiene avatar -> verificar registro de hoy
-                                    val cal = Calendar.getInstance()
+                                    val timeZone = TimeZone.getTimeZone("America/Bogota")
+                                    val cal = Calendar.getInstance(timeZone)
+                                    
+                                    val sdfDia = SimpleDateFormat("d", Locale("es", "ES"))
+                                    val sdfMes = SimpleDateFormat("MMMM", Locale("es", "ES"))
+                                    val sdfAnio = SimpleDateFormat("yyyy", Locale("es", "ES"))
+                                    
+                                    sdfDia.timeZone = timeZone
+                                    sdfMes.timeZone = timeZone
+                                    sdfAnio.timeZone = timeZone
+
+                                    val diaActual = sdfDia.format(cal.time)
+                                    val mesActual = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
+                                    val anioActual = sdfAnio.format(cal.time)
+
                                     val registroHoy = db.estadoAnimoDao().obtenerRegistroHoy(
                                         user.username,
-                                        cal.get(Calendar.DAY_OF_MONTH).toString(),
-                                        (cal.get(Calendar.MONTH) + 1).toString(),
-                                        cal.get(Calendar.YEAR).toString()
+                                        diaActual,
+                                        mesActual,
+                                        anioActual
                                     )
 
                                     val intent = if (registroHoy != null) {
-                                        Intent(this@InicioSesionActivity, HistorialActivity::class.java)
+                                        Intent(this@InicioSesionActivity, PerfilActivity::class.java)
                                     } else {
                                         Intent(this@InicioSesionActivity, EstadoAnimoActivity::class.java)
                                     }
