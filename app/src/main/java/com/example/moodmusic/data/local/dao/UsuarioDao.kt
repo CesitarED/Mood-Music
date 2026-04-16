@@ -13,6 +13,9 @@ interface UsuarioDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertar(usuario: UsuarioEntity)
 
+    @Query("DELETE FROM usuarios WHERE username = :oldUsername")
+    suspend fun eliminarPorUsername(oldUsername: String)
+
     @Update
     suspend fun actualizar(usuario: UsuarioEntity)
 
@@ -21,6 +24,9 @@ interface UsuarioDao {
 
     @Query("SELECT * FROM usuarios WHERE username = :username LIMIT 1")
     suspend fun buscarPorUsername(username: String): UsuarioEntity?
+
+    @Query("SELECT * FROM usuarios WHERE username = :username LIMIT 1")
+    fun buscarPorUsernameFlow(username: String): Flow<UsuarioEntity?>
 
     @Query("SELECT * FROM usuarios WHERE correo = :correo LIMIT 1")
     suspend fun buscarPorCorreo(correo: String): UsuarioEntity?

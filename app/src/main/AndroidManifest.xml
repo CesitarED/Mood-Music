@@ -65,6 +65,31 @@
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
+        <activity
+            android:name=".ui.musica.MusicaRecomendadaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <activity
+            android:name=".ui.perfil.PerfilActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <activity
+            android:name=".ui.perfil.EditarPerfilActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <activity
+            android:name=".ui.perfil.CambiarContrasenaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <activity
+            android:name=".ui.musica.CargaMusicaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
     </application>
 
 </manifest>

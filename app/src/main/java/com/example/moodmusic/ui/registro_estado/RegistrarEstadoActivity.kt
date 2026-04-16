@@ -1,5 +1,6 @@
 package com.example.moodmusic.ui.registro_estado
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -28,10 +29,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moodmusic.data.model.EstadoAnimo
 import com.example.moodmusic.data.model.UsuarioEntity
+import com.example.moodmusic.ui.musica.MusicaRecomendadaActivity
 import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.EstadoAnimoViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+
+import com.example.moodmusic.ui.musica.CargaMusicaActivity
 
 class RegistrarEstadoActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,6 +64,8 @@ class RegistrarEstadoActivity : ComponentActivity() {
                     onVolver = { finish() },
                     onGuardarExitoso = {
                         Toast.makeText(this, "Estado guardado correctamente", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this, CargaMusicaActivity::class.java)
+                        startActivity(intent)
                         finish()
                     }
                 )

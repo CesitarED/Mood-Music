@@ -9,8 +9,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.moodmusic.data.SessionManager
 import com.example.moodmusic.data.local.database.DatabaseProvider
 import com.example.moodmusic.data.model.UsuarioEntity
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class UsuarioViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dao = DatabaseProvider
@@ -18,6 +21,8 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         .usuarioDao()
     
     private val sessionManager = SessionManager(application)
+
+    private val _usernameSession = MutableStateFlow(sessionManager.getUsername())
 
     var mensajeError by mutableStateOf("")
         private set
@@ -31,10 +36,20 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     var usuarioActual by mutableStateOf<UsuarioEntity?>(null)
         private set
 
+    init {
+        viewModelScope.launch {
+            // Cada vez que el username en sesión cambie, reiniciamos el Flow de Room
+            _usernameSession.flatMapLatest { username ->
+                if (username != null) dao.buscarPorUsernameFlow(username)
+                else flowOf(null)
+            }.collect { usuario ->
+                usuarioActual = usuario
+            }
+        }
+    }
+
     var usuarioRegistrado: UsuarioEntity? = null
         private set
-
-    val listaUsuarios = dao.obtenerTodos()
 
     fun registrar(
         username: String,
@@ -61,9 +76,9 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                 )
                 dao.insertar(usuario)
                 usuarioRegistrado = usuario
-                usuarioActual = usuario
                 
                 sessionManager.saveSession(username)
+                _usernameSession.value = username
                 
                 registroExitoso = true
                 mensajeError = ""
@@ -78,8 +93,8 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                 ?: dao.buscarPorNombre(nombreOUsername)
 
             if (usuario != null && usuario.contrasena == contrasena) {
-                usuarioActual = usuario
                 sessionManager.saveSession(usuario.username)
+                _usernameSession.value = usuario.username
                 loginExitoso = true
                 mensajeError = ""
             } else {
@@ -91,11 +106,61 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
 
     fun actualizarAvatar(avatar: Int) {
         viewModelScope.launch {
-            usuarioActual?.let { usuario ->
+            val userToUpdate = usuarioActual ?: sessionManager.getUsername()?.let { 
+                dao.buscarPorUsername(it) 
+            }
+
+            userToUpdate?.let { usuario ->
                 val actualizado = usuario.copy(avatar = avatar)
                 dao.actualizar(actualizado)
-                usuarioActual = actualizado
-                usuarioRegistrado = actualizado
+            }
+        }
+    }
+
+    private val estadoAnimoDao = DatabaseProvider
+        .getDatabase(application)
+        .estadoAnimoDao()
+
+    fun actualizarPerfil(
+        nombre: String,
+        apellido: String,
+        nuevoUsername: String,
+        edad: String,
+        correo: String
+    ) {
+        viewModelScope.launch {
+            usuarioActual?.let { usuario ->
+                val usernameAntiguo = usuario.username
+                val actualizado = usuario.copy(
+                    nombre = nombre,
+                    apellido = apellido,
+                    username = nuevoUsername,
+                    edad = edad,
+                    correo = correo
+                )
+
+                if (usernameAntiguo != nuevoUsername) {
+                    // 1. Actualizamos masivamente el historial para que no se pierda
+                    estadoAnimoDao.actualizarUsernameHistorial(usernameAntiguo, nuevoUsername)
+                    
+                    // 2. Borramos el usuario viejo e insertamos el nuevo (cambio de PK)
+                    dao.eliminarPorUsername(usernameAntiguo)
+                    dao.insertar(actualizado)
+                    
+                    sessionManager.saveSession(nuevoUsername)
+                    _usernameSession.value = nuevoUsername
+                } else {
+                    dao.actualizar(actualizado)
+                }
+            }
+        }
+    }
+
+    fun actualizarContrasena(nuevaContrasena: String) {
+        viewModelScope.launch {
+            usuarioActual?.let { usuario ->
+                val actualizado = usuario.copy(contrasena = nuevaContrasena)
+                dao.actualizar(actualizado)
             }
         }
     }

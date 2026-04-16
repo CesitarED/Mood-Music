@@ -60,18 +60,17 @@ class SeleccionAvatarActivity : ComponentActivity() {
                         // 2. Actualizar en BD y en el objeto local
                         viewModel.actualizarAvatar(avatarSeleccionado)
                         
-                        // Actualizar el objeto usuario para pasarlo a la siguiente pantalla
-                        val updatedUsuario = usuario?.copy(avatar = avatarSeleccionado)
-
-                        // 3. Pasar el usuario a la siguiente pantalla para que NO sea null
-                        val intent = Intent(
-                            this@SeleccionAvatarActivity,
-                            EstadoAnimoActivity::class.java
-                        )
-                        intent.putExtra("usuario", updatedUsuario)
-
-                        startActivity(intent)
-                        finish()
+                        // Si venimos del perfil, volvemos al perfil
+                        // Si es el flujo inicial, vamos a EstadoAnimo
+                        if (intent.getBooleanExtra("desdePerfil", false)) {
+                            finish()
+                        } else {
+                            val updatedUsuario = usuario?.copy(avatar = avatarSeleccionado)
+                            val intent = Intent(this@SeleccionAvatarActivity, EstadoAnimoActivity::class.java)
+                            intent.putExtra("usuario", updatedUsuario)
+                            startActivity(intent)
+                            finish()
+                        }
                     }
                 )
             }
