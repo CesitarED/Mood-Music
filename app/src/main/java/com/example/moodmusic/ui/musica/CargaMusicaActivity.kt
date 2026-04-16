@@ -120,7 +120,11 @@ fun PacmanAnimation() {
 
         // Dibujar Pacman
         drawArc(
-            brush = Brush.linearGradient(listOf(ColorAzul, ColorMorado)),
+            brush = Brush.linearGradient(
+                colors = listOf(Color(0xFF4AC7FA), Color(0xFF9D59FF)), // Colores más vibrantes según la imagen
+                start = Offset(centerX - sizePacman / 2, centerY),
+                end = Offset(centerX + sizePacman / 2, centerY)
+            ),
             startAngle = bocaAngle,
             sweepAngle = 360f - (bocaAngle * 2),
             useCenter = true,
