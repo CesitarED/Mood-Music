@@ -29,6 +29,7 @@ import com.example.moodmusic.data.model.UsuarioEntity
 import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.registro_estado.EstadoAnimoActivity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.UsuarioViewModel
 
 class SeleccionAvatarActivity : ComponentActivity() {
@@ -43,28 +44,16 @@ class SeleccionAvatarActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 1. Obtener el usuario del intent
-        val usuario = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getSerializableExtra("usuario", UsuarioEntity::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getSerializableExtra("usuario") as? UsuarioEntity
-        }
-
         setContent {
             MoodMusicTheme {
                 PantallaSeleccionAvatar(
                     onVolver = { finish() },
                     onContinuar = { avatarSeleccionado ->
-
-                        // Guardamos el avatar seleccionado tanto en local como en Firestore
                         viewModel.actualizarAvatar(avatarSeleccionado)
                         
-                        // Si el usuario viene desde su perfil, solo cerramos la pantalla
                         if (intent.getBooleanExtra("desdePerfil", false)) {
                             finish()
                         } else {
-                            // Si es la primera vez (flujo de inicio), vamos a registrar el estado de ánimo
                             val intent = Intent(this@SeleccionAvatarActivity, EstadoAnimoActivity::class.java)
                             startActivity(intent)
                             finish()
@@ -84,14 +73,8 @@ fun PantallaSeleccionAvatar(
     var avatarSeleccionado by remember { mutableStateOf<Int?>(null) }
 
     val listaAvatares = listOf(
-        R.drawable.avatar1,
-        R.drawable.avatar2,
-        R.drawable.avatar3,
-        R.drawable.avatar4,
-        R.drawable.avatar5,
-        R.drawable.avatar6,
-        R.drawable.avatar7,
-        R.drawable.avatar8
+        R.drawable.avatar1, R.drawable.avatar2, R.drawable.avatar3, R.drawable.avatar4,
+        R.drawable.avatar5, R.drawable.avatar6, R.drawable.avatar7, R.drawable.avatar8
     )
 
     Column(
@@ -109,7 +92,7 @@ fun PantallaSeleccionAvatar(
                 modifier = Modifier
                     .size(45.dp)
                     .shadow(2.dp, RoundedCornerShape(12.dp))
-                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .background(ColorCampo, RoundedCornerShape(12.dp))
                     .border(1.dp, ColorMorado.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
                     .clickable { onVolver() },
                 contentAlignment = Alignment.Center
@@ -138,7 +121,7 @@ fun PantallaSeleccionAvatar(
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(6.dp, RoundedCornerShape(20.dp))
-                .background(Color.White, RoundedCornerShape(20.dp))
+                .background(ColorCampo, RoundedCornerShape(20.dp))
                 .border(
                     2.dp,
                     Brush.linearGradient(listOf(ColorAzul, ColorMorado)),
@@ -175,8 +158,10 @@ fun PantallaSeleccionAvatar(
                 .height(52.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = ColorTexto
+                containerColor = ColorCampo,
+                contentColor = ColorTexto,
+                disabledContainerColor = ColorBotonGris.copy(alpha = 0.5f),
+                disabledContentColor = ColorSubtexto.copy(alpha = 0.5f)
             ),
             border = BorderStroke(
                 1.5.dp,
@@ -204,12 +189,12 @@ fun ItemAvatar(
         modifier = Modifier
             .size(70.dp)
             .shadow(4.dp, RoundedCornerShape(16.dp))
-            .background(Color.White, RoundedCornerShape(16.dp))
+            .background(ColorCampo, RoundedCornerShape(16.dp))
             .border(
                 width = if (seleccionado) 3.dp else 1.dp,
                 brush = if (seleccionado)
                     Brush.linearGradient(listOf(ColorAzul, ColorMorado))
-                else Brush.linearGradient(listOf(Color.LightGray, Color.LightGray)),
+                else Brush.linearGradient(listOf(ColorBorde, ColorBorde)),
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable { onClick() },

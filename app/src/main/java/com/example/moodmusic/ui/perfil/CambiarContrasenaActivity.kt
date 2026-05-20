@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.UsuarioViewModel
 
 class CambiarContrasenaActivity : ComponentActivity() {
@@ -117,7 +118,7 @@ fun PantallaCambiarContrasena(
                 .height(50.dp)
                 .shadow(4.dp, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color.White)
+                .background(ColorCampo)
                 .border(
                     BorderStroke(1.5.dp, Brush.linearGradient(listOf(ColorAzul, ColorMorado))),
                     RoundedCornerShape(16.dp)
@@ -148,7 +149,7 @@ fun PantallaCambiarContrasena(
                 .fillMaxWidth(0.6f)
                 .height(50.dp)
                 .shadow(2.dp, RoundedCornerShape(16.dp))
-                .background(Color.White, RoundedCornerShape(16.dp))
+                .background(ColorCampo, RoundedCornerShape(16.dp))
                 .border(1.dp, ColorBorde, RoundedCornerShape(16.dp))
                 .clickable { onVolver() },
             contentAlignment = Alignment.Center
@@ -171,13 +172,13 @@ fun CajaTextoPasswordDiseno(
             .fillMaxWidth()
             .height(56.dp)
             .shadow(2.dp, RoundedCornerShape(14.dp))
-            .background(Color(0xFFF7F8FA), RoundedCornerShape(14.dp)) // Gris muy clarito como la imagen
+            .background(ColorCampo, RoundedCornerShape(14.dp))
             .border(1.dp, ColorBorde, RoundedCornerShape(14.dp))
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         if (valor.isEmpty()) {
-            Text(label, color = Color.LightGray, fontSize = 14.sp)
+            Text(label, color = ColorSubtexto, fontSize = 14.sp)
         }
         
         Row(
@@ -201,7 +202,7 @@ fun CajaTextoPasswordDiseno(
                 Icon(
                     imageVector = if (mostrar) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                     contentDescription = null,
-                    tint = Color.LightGray,
+                    tint = ColorSubtexto,
                     modifier = Modifier.size(20.dp)
                 )
             }

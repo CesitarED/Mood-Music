@@ -21,11 +21,8 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.moodmusic.ui.main.ColorAzul
-import com.example.moodmusic.ui.main.ColorFondo
-import com.example.moodmusic.ui.main.ColorMorado
-import com.example.moodmusic.ui.main.ColorTexto
 import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
 import kotlinx.coroutines.delay
 
 import androidx.compose.ui.platform.LocalContext
@@ -55,7 +52,6 @@ class CargaMusicaActivity : ComponentActivity() {
                 val usuarioActual = usuarioViewModel.usuarioActual
                 var moodToUse by remember { mutableStateOf(moodFromIntent) }
                 
-                // Si no viene un mood por intent (desde perfil), lo buscamos en la DB
                 LaunchedEffect(usuarioActual) {
                     if (moodToUse == null && usuarioActual != null) {
                         val db = com.example.moodmusic.data.local.database.DatabaseProvider.getDatabase(context)
@@ -76,14 +72,12 @@ class CargaMusicaActivity : ComponentActivity() {
                             mes,
                             anio
                         )
-                        // Si existe registro hoy, usamos esa emoción. Si no, default a "feliz"
                         moodToUse = registro?.nombreEstado ?: "feliz"
                     }
                 }
 
                 PantallaCargaPacman {
                     val intent = Intent(this, MusicaRecomendadaActivity::class.java).apply {
-                        // Pasamos el usuario actual y el mood detectado
                         putExtra("usuario", usuarioActual)
                         putExtra("mood", moodToUse ?: "feliz")
                     }
@@ -97,8 +91,6 @@ class CargaMusicaActivity : ComponentActivity() {
 
 @Composable
 fun PantallaCargaPacman(onFinalizar: () -> Unit) {
-    // Usamos rememberUpdatedState para que el delay siempre ejecute la versión 
-    // más reciente de la función, capturando el moodToUse actualizado.
     val currentOnFinalizar by rememberUpdatedState(onFinalizar)
 
     LaunchedEffect(Unit) {
@@ -130,7 +122,6 @@ fun PantallaCargaPacman(onFinalizar: () -> Unit) {
 fun PacmanAnimation() {
     val infiniteTransition = rememberInfiniteTransition(label = "pacman")
 
-    // Animación de la boca (ángulo de apertura)
     val bocaAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 45f,
@@ -141,7 +132,6 @@ fun PacmanAnimation() {
         label = "boca"
     )
 
-    // Animación de los puntos (desplazamiento)
     val puntoOffset by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 60f,
@@ -157,13 +147,12 @@ fun PacmanAnimation() {
         val centerY = size.height / 2
         val centerX = size.width / 4
 
-        // Dibujar los puntos
         val puntoRadio = 8.dp.toPx()
         val espacioEntrePuntos = 40.dp.toPx()
         
         for (i in 0..3) {
             val x = (centerX + 60.dp.toPx()) + (i * espacioEntrePuntos) - puntoOffset.dp.toPx()
-            if (x > centerX) { // Solo dibujar si está delante de pacman
+            if (x > centerX) { 
                 drawCircle(
                     color = Color.Gray.copy(alpha = 0.6f),
                     radius = puntoRadio,
@@ -172,10 +161,9 @@ fun PacmanAnimation() {
             }
         }
 
-        // Dibujar Pacman
         drawArc(
             brush = Brush.linearGradient(
-                colors = listOf(Color(0xFF4AC7FA), Color(0xFF9D59FF)), // Colores más vibrantes según la imagen
+                colors = listOf(ColorAzul, ColorMorado),
                 start = Offset(centerX - sizePacman / 2, centerY),
                 end = Offset(centerX + sizePacman / 2, centerY)
             ),

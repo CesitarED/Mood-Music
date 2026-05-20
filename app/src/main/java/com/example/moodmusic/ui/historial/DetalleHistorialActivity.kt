@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.example.moodmusic.data.local.database.DatabaseProvider
 import com.example.moodmusic.data.model.EstadoAnimoEntity
 import com.example.moodmusic.ui.theme.*
-import kotlinx.coroutines.CoroutineScope
+import com.example.moodmusic.ui.main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -71,10 +71,10 @@ fun PantallaDetalleHistorial(
     onVolver: () -> Unit
 ) {
     var estado by remember { mutableStateOf(estadoInicial) }
-    // Inicializamos la nota con la que ya existe en la base de datos
     var notaEditable by remember { mutableStateOf(estadoInicial?.nota ?: "") }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val isDark = LocalIsDarkTheme.current
 
     val musicRepository: MusicRepository by lazy {
         val retrofit = Retrofit.Builder()
@@ -101,7 +101,7 @@ fun PantallaDetalleHistorial(
                 modifier = Modifier
                     .size(45.dp)
                     .shadow(2.dp, RoundedCornerShape(12.dp))
-                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .background(ColorCampo, RoundedCornerShape(12.dp))
                     .border(1.dp, ColorMorado.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
                     .clickable { onVolver() },
                 contentAlignment = Alignment.Center
@@ -127,9 +127,11 @@ fun PantallaDetalleHistorial(
         Spacer(modifier = Modifier.height(32.dp))
 
         estado?.let { est ->
-            val gradiente = Brush.linearGradient(
-                colors = listOf(Color(0xFFE0F7FA), Color(0xFFE1BEE7))
-            )
+            val gradiente = if (isDark) {
+                Brush.linearGradient(colors = listOf(Color(0xFF1E2A4A), Color(0xFF2D1E4A)))
+            } else {
+                Brush.linearGradient(colors = listOf(Color(0xFFE0F7FA), Color(0xFFE1BEE7)))
+            }
 
             Column(
                 modifier = Modifier
@@ -196,7 +198,6 @@ fun PantallaDetalleHistorial(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Campo de texto para editar la nota (es opcional)
                 OutlinedTextField(
                     value = notaEditable,
                     onValueChange = { notaEditable = it },
@@ -204,13 +205,15 @@ fun PantallaDetalleHistorial(
                         .fillMaxWidth()
                         .height(150.dp)
                         .shadow(2.dp, RoundedCornerShape(16.dp))
-                        .background(Color.White, RoundedCornerShape(16.dp)),
-                    placeholder = { Text("¿Quieres añadir algo más?", color = Color.LightGray) },
+                        .background(ColorCampo, RoundedCornerShape(16.dp)),
+                    placeholder = { Text("¿Quieres añadir algo más?", color = ColorSubtexto) },
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = ColorTexto,
+                        unfocusedTextColor = ColorTexto,
                         focusedBorderColor = ColorMorado.copy(alpha = 0.5f),
                         unfocusedBorderColor = Color.Transparent,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
+                        focusedContainerColor = ColorCampo,
+                        unfocusedContainerColor = ColorCampo
                     ),
                     shape = RoundedCornerShape(16.dp)
                 )
@@ -246,7 +249,7 @@ fun PantallaDetalleHistorial(
                 .fillMaxWidth(0.7f)
                 .height(52.dp),
             shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = ColorTexto),
+            colors = ButtonDefaults.buttonColors(containerColor = ColorCampo, contentColor = ColorTexto),
             border = BorderStroke(1.5.dp, Brush.linearGradient(listOf(ColorAzul, ColorMorado)))
         ) {
             Text("Guardar cambios", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)

@@ -37,7 +37,6 @@ import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.EstadoAnimoViewModel
 import com.example.moodmusic.viewmodel.MusicViewModel
 import com.example.moodmusic.viewmodel.MusicViewModelFactory
-import androidx.lifecycle.viewmodel.compose.viewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -183,10 +182,17 @@ fun PantallaRegistrarEstado(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
-                .shadow(2.dp, RoundedCornerShape(16.dp))
-                .background(Color.White, RoundedCornerShape(16.dp)),
-            placeholder = { Text("Escribe lo que está influyendo en tu estado...") },
-            shape = RoundedCornerShape(16.dp)
+                .shadow(2.dp, RoundedCornerShape(16.dp)),
+            placeholder = { Text("Escribe lo que está influyendo en tu estado...", color = ColorSubtexto) },
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = ColorTexto,
+                unfocusedTextColor = ColorTexto,
+                focusedBorderColor = ColorMorado,
+                unfocusedBorderColor = ColorBorde,
+                focusedContainerColor = ColorCampo,
+                unfocusedContainerColor = ColorCampo
+            )
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -212,7 +218,6 @@ fun PantallaRegistrarEstado(
 
                     viewModel.seleccionarEstado(estadoAnimo)
                     
-                    // Sincronizar con la nube
                     musicViewModel.guardarRegistroCloud(
                         emocion = estadoAnimo.nombre,
                         emoji = estadoAnimo.emoji,
@@ -223,7 +228,6 @@ fun PantallaRegistrarEstado(
                         anio = anioActual
                     )
 
-                    // Guardar localmente y navegar
                     viewModel.guardarEstado(usuario.username, nota, usuario.avatar) {
                         onGuardarExitoso(estadoAnimo.nombre)
                     }
@@ -240,7 +244,7 @@ fun PantallaRegistrarEstado(
                 .height(56.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
+                containerColor = ColorCampo,
                 contentColor = ColorTexto
             ),
             border = BorderStroke(
@@ -260,7 +264,7 @@ fun PantallaRegistrarEstado(
                 .height(56.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
+                containerColor = ColorCampo,
                 contentColor = ColorTexto
             )
         ) {

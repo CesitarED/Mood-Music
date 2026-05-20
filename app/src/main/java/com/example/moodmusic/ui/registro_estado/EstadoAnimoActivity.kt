@@ -39,7 +39,6 @@ import com.example.moodmusic.viewmodel.UsuarioViewModel
 
 class EstadoAnimoActivity : ComponentActivity() {
     
-    // Usamos el ViewModel para obtener los datos del usuario de la sesión actual
     private val usuarioViewModel: UsuarioViewModel by lazy {
         ViewModelProvider.AndroidViewModelFactory.getInstance(application)
             .create(UsuarioViewModel::class.java)
@@ -54,7 +53,6 @@ class EstadoAnimoActivity : ComponentActivity() {
                 val context = androidx.compose.ui.platform.LocalContext.current
                 val usuarioActual = usuarioViewModel.usuarioActual
                 
-                // Validación de seguridad: Redirigir si ya registró su emoción hoy
                 LaunchedEffect(usuarioActual) {
                     if (usuarioActual != null) {
                         val user = usuarioActual
@@ -73,7 +71,6 @@ class EstadoAnimoActivity : ComponentActivity() {
                         val yaRegistroHoy = db.estadoAnimoDao().obtenerRegistroHoy(user.username, dia, mes, anio)
                         
                         if (yaRegistroHoy != null) {
-                            // Si ya tiene registro, directo al perfil
                             val intent = Intent(this@EstadoAnimoActivity, PerfilActivity::class.java)
                             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                             startActivity(intent)
@@ -85,7 +82,6 @@ class EstadoAnimoActivity : ComponentActivity() {
                 PantallaEstadoAnimo(
                     usuario = usuarioActual,
                     onGuardar = { estadoAnimo ->
-                        // Ya no pasamos el usuario por intent, se recupera en la siguiente actividad
                         val intent = Intent(this, RegistrarEstadoActivity::class.java).apply {
                             putExtra("estadoAnimo", estadoAnimo)
                         }
@@ -181,7 +177,7 @@ fun PantallaEstadoAnimo(
                 .height(56.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
+                containerColor = ColorCampo,
                 contentColor   = ColorTexto
             ),
             border = BorderStroke(
@@ -205,10 +201,10 @@ fun PantallaEstadoAnimo(
                 .height(56.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
+                containerColor = ColorCampo,
                 contentColor   = ColorTexto
             ),
-            border = BorderStroke(1.dp, Color(0xFFE0E0E8))
+            border = BorderStroke(1.dp, ColorBorde)
         ) {
             Text(
                 text = "Ver mi historial",

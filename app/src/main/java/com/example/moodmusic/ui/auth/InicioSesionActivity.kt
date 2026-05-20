@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -27,13 +29,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import com.example.moodmusic.R
 import com.example.moodmusic.data.local.database.DatabaseProvider
 import com.example.moodmusic.ui.avatar.SeleccionAvatarActivity
 import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.registro_estado.EstadoAnimoActivity
 import com.example.moodmusic.ui.historial.HistorialActivity
 import com.example.moodmusic.ui.perfil.PerfilActivity
-import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.UsuarioViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,9 +44,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-// -------------------------------------------------------
-// InicioSesionActivity
-// -------------------------------------------------------
 class InicioSesionActivity : ComponentActivity() {
 
     private val viewModel: UsuarioViewModel by lazy {
@@ -58,7 +58,6 @@ class InicioSesionActivity : ComponentActivity() {
 
         setContent {
             MoodMusicTheme {
-
                 val loginExitoso = viewModel.loginExitoso
                 val mensajeError = viewModel.mensajeError
                 val context = LocalContext.current
@@ -66,17 +65,14 @@ class InicioSesionActivity : ComponentActivity() {
                 LaunchedEffect(loginExitoso, viewModel.usuarioActual) {
                     if (loginExitoso && viewModel.usuarioActual != null) {
                         val user = viewModel.usuarioActual!!
-                        // Lógica de redirección después del login
                         CoroutineScope(Dispatchers.IO).launch {
                             val db = DatabaseProvider.getDatabase(context)
                             
                             if (user.avatar == -1) {
-                                // Redirección obligatoria si no tiene avatar (recién registrado)
                                 val intent = Intent(this@InicioSesionActivity, SeleccionAvatarActivity::class.java)
                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 startActivity(intent)
                             } else {
-                                // 🟢 YA tiene avatar -> verificar registro de hoy
                                 val timeZone = TimeZone.getTimeZone("America/Bogota")
                                 val cal = Calendar.getInstance(timeZone)
                                 
@@ -104,7 +100,6 @@ class InicioSesionActivity : ComponentActivity() {
                                 } else {
                                     Intent(this@InicioSesionActivity, EstadoAnimoActivity::class.java)
                                 }
-                                // No hace falta pasar el usuario por intent si el ViewModel lo maneja por sesión
                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 startActivity(intent)
                             }
@@ -127,9 +122,7 @@ class InicioSesionActivity : ComponentActivity() {
         }
     }
 }
-// -------------------------------------------------------
-// Pantalla Login
-// -------------------------------------------------------
+
 @Composable
 fun PantallaLogin(
     mensajeErrorExterno: String = "",
@@ -225,35 +218,20 @@ fun PantallaLogin(
     }
 }
 
-// -------------------------------------------------------
-// Logo
-// -------------------------------------------------------
 @Composable
 fun LogoOnda() {
-    Box(
-        modifier = Modifier.size(width = 200.dp, height = 90.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "♩", fontSize = 22.sp, color = ColorMorado)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Mood&Music",
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily.Cursive,
-                    color = ColorAzul
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "♪", fontSize = 18.sp, color = ColorMorado)
-            }
-        }
-    }
+    val isDark = LocalIsDarkTheme.current
+    val logoRes = if (isDark) R.drawable.logo_app_oscuro else R.drawable.logo_app_claro
+    
+    Image(
+        painter = painterResource(id = logoRes),
+        contentDescription = "Logo Mood & Music",
+        modifier = Modifier
+            .fillMaxWidth(0.6f)
+            .wrapContentHeight()
+    )
 }
 
-// -------------------------------------------------------
-// Campo de texto reutilizable
-// -------------------------------------------------------
 @Composable
 fun CampoTexto(
     valor: String,
@@ -267,6 +245,8 @@ fun CampoTexto(
         singleLine = true,
         shape = RoundedCornerShape(14.dp),
         colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor        = ColorTexto,
+            unfocusedTextColor      = ColorTexto,
             focusedBorderColor      = ColorMorado,
             unfocusedBorderColor    = ColorBorde,
             focusedContainerColor   = ColorCampo,
@@ -276,9 +256,6 @@ fun CampoTexto(
     )
 }
 
-// -------------------------------------------------------
-// Campo contraseña con ojo
-// -------------------------------------------------------
 @Composable
 fun CampoContrasena(
     valor: String,
@@ -305,6 +282,8 @@ fun CampoContrasena(
         },
         shape = RoundedCornerShape(14.dp),
         colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor        = ColorTexto,
+            unfocusedTextColor      = ColorTexto,
             focusedBorderColor      = ColorMorado,
             unfocusedBorderColor    = ColorBorde,
             focusedContainerColor   = ColorCampo,
@@ -314,9 +293,6 @@ fun CampoContrasena(
     )
 }
 
-// -------------------------------------------------------
-// Botón gradiente
-// -------------------------------------------------------
 @Composable
 fun BotonGradiente(
     texto: String,
@@ -350,9 +326,6 @@ fun BotonGradiente(
     }
 }
 
-// -------------------------------------------------------
-// Botón secundario
-// -------------------------------------------------------
 @Composable
 fun BotonSecundario(
     texto: String,

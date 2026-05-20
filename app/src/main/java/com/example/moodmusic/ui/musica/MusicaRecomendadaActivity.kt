@@ -39,6 +39,7 @@ import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.perfil.PerfilActivity
 import com.example.moodmusic.ui.registro_estado.EstadoAnimoActivity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
 
 class MusicaRecomendadaActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,15 +87,26 @@ fun PantallaMusicaRecomendada(
 
     val canciones = viewModel.canciones
     val cargando = viewModel.cargando
+    val isDark = LocalIsDarkTheme.current
 
-    // Degradado de fondo similar al de la imagen
-    val fondoGradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFFE0F7FA), // Azul muy claro
-            Color(0xFFF3E5F5), // Morado muy claro
-            Color(0xFFFFFFFF)  // Blanco
+    // Degradado de fondo adaptado
+    val fondoGradient = if (isDark) {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF121212),
+                Color(0xFF1E1E1E),
+                Color(0xFF121212)
+            )
         )
-    )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFFE0F7FA), // Azul muy claro
+                Color(0xFFF3E5F5), // Morado muy claro
+                Color(0xFFFFFFFF)  // Blanco
+            )
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -114,7 +126,7 @@ fun PantallaMusicaRecomendada(
                 modifier = Modifier
                     .size(45.dp)
                     .shadow(2.dp, RoundedCornerShape(12.dp))
-                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .background(ColorCampo, RoundedCornerShape(12.dp))
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -137,8 +149,6 @@ fun PantallaMusicaRecomendada(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Usamos weight(1f) para que la lista ocupe el espacio disponible
-            // y el scroll funcione perfectamente dentro de la columna.
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -179,7 +189,7 @@ fun ItemCancion(track: TrackDto) {
                 context.startActivity(intent)
             },
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = ColorCampo)
     ) {
         Row(
             modifier = Modifier

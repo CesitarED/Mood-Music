@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -28,11 +27,9 @@ import com.example.moodmusic.R
 import com.example.moodmusic.ui.auth.InicioSesionActivity
 import com.example.moodmusic.ui.avatar.SeleccionAvatarActivity
 import com.example.moodmusic.ui.historial.HistorialActivity
-import com.example.moodmusic.ui.main.*
-import com.example.moodmusic.ui.musica.MusicaRecomendadaActivity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.UsuarioViewModel
-
 import com.example.moodmusic.ui.musica.CargaMusicaActivity
 
 class PerfilActivity : ComponentActivity() {
@@ -56,10 +53,7 @@ class PerfilActivity : ComponentActivity() {
                         startActivity(intent)
                     },
                     onVerMusica = {
-                        val intent = Intent(this, CargaMusicaActivity::class.java).apply {
-                            // Intentamos obtener el último estado para pasar el mood
-                            // O simplemente dejamos que CargaMusica maneje el flujo si no hay mood
-                        }
+                        val intent = Intent(this, CargaMusicaActivity::class.java)
                         startActivity(intent)
                     },
                     onCambiarPass = {
@@ -88,9 +82,8 @@ fun PantallaPerfil(
     onCambiarPass: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
-    // Obtenemos el usuario del ViewModel. Gracias al Flow en el ViewModel,
-    // esta variable se actualizará automáticamente cuando cambie en la DB.
     val usuario = viewModel.usuarioActual
+    val isDarkMode = viewModel.isDarkMode
     val listaAvatares = listOf(
         R.drawable.avatar1, R.drawable.avatar2, R.drawable.avatar3, R.drawable.avatar4,
         R.drawable.avatar5, R.drawable.avatar6, R.drawable.avatar7, R.drawable.avatar8
@@ -105,9 +98,9 @@ fun PantallaPerfil(
             modifier = Modifier
                 .padding(horizontal = 32.dp)
                 .wrapContentHeight(),
-            confirmButton = {}, // No usamos los botones por defecto para el diseño personalizado
+            confirmButton = {},
             dismissButton = {},
-            containerColor = Color.White,
+            containerColor = ColorCampo,
             shape = RoundedCornerShape(24.dp),
             text = {
                 Column(
@@ -118,13 +111,13 @@ fun PantallaPerfil(
                         text = "Cerrar sesión",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = ColorTexto
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "¿Estás seguro de salir de la aplicación?\nNecesitarás iniciar sesión de nuevo para usar la app.",
                         fontSize = 14.sp,
-                        color = Color.Gray,
+                        color = ColorSubtexto,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         lineHeight = 18.sp
                     )
@@ -133,7 +126,6 @@ fun PantallaPerfil(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Botón Cancelar
                         OutlinedButton(
                             onClick = { mostrarDialogo = false },
                             modifier = Modifier.weight(1f).height(48.dp),
@@ -143,7 +135,6 @@ fun PantallaPerfil(
                         ) {
                             Text("Cancelar", fontWeight = FontWeight.SemiBold)
                         }
-                        // Botón Cerrar sesión
                         Button(
                             onClick = {
                                 viewModel.cerrarSesion()
@@ -166,12 +157,11 @@ fun PantallaPerfil(
             .fillMaxSize()
             .background(ColorFondo)
             .padding(horizontal = 24.dp)
-            .verticalScroll(rememberScrollState()), // Añadimos scroll por si acaso
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
-        // Mostramos el nombre del usuario o cargando...
         Text(
             text = "Hola! @${usuario?.username ?: "..."}",
             fontSize = 28.sp,
@@ -181,7 +171,6 @@ fun PantallaPerfil(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // La foto ahora se actualizará sola
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -194,7 +183,7 @@ fun PantallaPerfil(
             val avatarRes = if (usuario != null && usuario.avatar in 0 until listaAvatares.size) {
                 listaAvatares[usuario.avatar]
             } else {
-                R.drawable.avatar1 // Imagen por defecto mientras carga o si no hay
+                R.drawable.avatar1
             }
 
             Image(
@@ -222,11 +211,13 @@ fun PantallaPerfil(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "Modo oscuro", fontSize = 17.sp, color = ColorTexto)
-                var isDark by remember { mutableStateOf(false) }
                 Switch(
-                    checked = isDark,
-                    onCheckedChange = { isDark = it },
-                    colors = SwitchDefaults.colors(checkedThumbColor = ColorMorado)
+                    checked = isDarkMode,
+                    onCheckedChange = { viewModel.toggleDarkMode(it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = ColorMorado,
+                        checkedTrackColor = ColorMorado.copy(alpha = 0.5f)
+                    )
                 )
             }
             HorizontalDivider(color = ColorBorde, thickness = 1.dp)

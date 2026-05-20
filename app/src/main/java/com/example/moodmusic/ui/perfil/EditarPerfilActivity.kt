@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moodmusic.R
 import com.example.moodmusic.ui.main.*
-import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.UsuarioViewModel
 
 class EditarPerfilActivity : ComponentActivity() {
@@ -96,7 +96,7 @@ fun PantallaEditarPerfil(
                 modifier = Modifier
                     .size(45.dp)
                     .shadow(2.dp, RoundedCornerShape(12.dp))
-                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .background(ColorCampo, RoundedCornerShape(12.dp))
                     .border(1.dp, ColorMorado.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
                     .clickable { onVolver() },
                 contentAlignment = Alignment.Center
@@ -209,7 +209,7 @@ fun PantallaEditarPerfil(
                 .height(52.dp)
                 .shadow(8.dp, RoundedCornerShape(20.dp)),
             shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+            colors = ButtonDefaults.buttonColors(containerColor = ColorCampo),
             border = BorderStroke(1.5.dp, Brush.linearGradient(listOf(ColorAzul, ColorMorado)))
         ) {
             Text("Guardar", color = ColorTexto, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
@@ -232,13 +232,13 @@ fun CajaTextoEdicion(
         modifier = modifier
             .height(56.dp)
             .shadow(2.dp, RoundedCornerShape(14.dp))
-            .background(Color.White, RoundedCornerShape(14.dp))
+            .background(ColorCampo, RoundedCornerShape(14.dp))
             .border(1.dp, ColorBorde, RoundedCornerShape(14.dp))
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         if (valor.isEmpty()) {
-            Text(label, color = Color.LightGray, fontSize = 14.sp)
+            Text(label, color = ColorSubtexto, fontSize = 14.sp)
         }
         
         BasicTextField(
@@ -259,7 +259,7 @@ fun CajaTextoEdicion(
                 painter = painterResource(id = android.R.drawable.arrow_down_float),
                 contentDescription = null,
                 modifier = Modifier.align(Alignment.CenterEnd).size(14.dp),
-                tint = Color.LightGray
+                tint = ColorSubtexto
             )
         }
     }

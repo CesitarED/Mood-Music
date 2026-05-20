@@ -9,7 +9,10 @@ class SessionManager(context: Context) {
     companion object {
         const val USER_NAME = "user_name"
         const val IS_LOGGED_IN = "is_logged_in"
+        const val DARK_MODE = "dark_mode"
     }
+
+    fun getPrefs(): SharedPreferences = prefs
 
     fun saveSession(username: String) {
         val editor = prefs.edit()
@@ -28,7 +31,16 @@ class SessionManager(context: Context) {
 
     fun logout() {
         val editor = prefs.edit()
-        editor.clear()
+        editor.remove(USER_NAME)
+        editor.remove(IS_LOGGED_IN)
         editor.apply()
+    }
+
+    fun isDarkMode(): Boolean {
+        return prefs.getBoolean(DARK_MODE, false)
+    }
+
+    fun setDarkMode(enabled: Boolean) {
+        prefs.edit().putBoolean(DARK_MODE, enabled).apply()
     }
 }

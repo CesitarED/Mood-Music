@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,13 +33,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import com.example.moodmusic.R
 import com.example.moodmusic.ui.main.*
-import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.UsuarioViewModel
 
-// -------------------------------------------------------
-// RegistroActivity
-// -------------------------------------------------------
 class RegistroActivity : ComponentActivity() {
 
     private val viewModel: UsuarioViewModel by lazy {
@@ -51,7 +51,6 @@ class RegistroActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MoodMusicTheme {
-
                 val registroExitoso = viewModel.registroExitoso
                 val mensajeError    = viewModel.mensajeError
 
@@ -84,9 +83,6 @@ class RegistroActivity : ComponentActivity() {
     }
 }
 
-// -------------------------------------------------------
-// Pantalla Registro
-// -------------------------------------------------------
 @Composable
 fun PantallaRegistro(
     mensajeErrorExterno: String = "",
@@ -105,6 +101,9 @@ fun PantallaRegistro(
     var mostrarConfirmar by remember { mutableStateOf(false) }
     var mensajeError     by remember { mutableStateOf("") }
 
+    val isDark = LocalIsDarkTheme.current
+    val logoRes = if (isDark) R.drawable.logo_app_oscuro else R.drawable.logo_app_claro
+
     LaunchedEffect(mensajeErrorExterno) {
         if (mensajeErrorExterno.isNotEmpty()) {
             mensajeError = mensajeErrorExterno
@@ -122,18 +121,13 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(52.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "♩", fontSize = 22.sp, color = ColorMorado)
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "Mood&Music",
-                fontSize = 18.sp,
-                fontFamily = FontFamily.Cursive,
-                color = ColorAzul
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(text = "♪", fontSize = 18.sp, color = ColorMorado)
-        }
+        Image(
+            painter = painterResource(id = logoRes),
+            contentDescription = "Logo Mood & Music",
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .wrapContentHeight()
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -146,7 +140,6 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Nombre + Apellido
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -158,6 +151,8 @@ fun PantallaRegistro(
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor        = ColorTexto,
+                    unfocusedTextColor      = ColorTexto,
                     focusedBorderColor      = ColorMorado,
                     unfocusedBorderColor    = ColorBorde,
                     focusedContainerColor   = ColorCampo,
@@ -172,6 +167,8 @@ fun PantallaRegistro(
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor        = ColorTexto,
+                    unfocusedTextColor      = ColorTexto,
                     focusedBorderColor      = ColorMorado,
                     unfocusedBorderColor    = ColorBorde,
                     focusedContainerColor   = ColorCampo,
@@ -183,7 +180,6 @@ fun PantallaRegistro(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Username + Edad
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -195,6 +191,8 @@ fun PantallaRegistro(
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor        = ColorTexto,
+                    unfocusedTextColor      = ColorTexto,
                     focusedBorderColor      = ColorMorado,
                     unfocusedBorderColor    = ColorBorde,
                     focusedContainerColor   = ColorCampo,
@@ -215,6 +213,8 @@ fun PantallaRegistro(
                 shape = RoundedCornerShape(14.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor        = ColorTexto,
+                    unfocusedTextColor      = ColorTexto,
                     focusedBorderColor      = ColorMorado,
                     unfocusedBorderColor    = ColorBorde,
                     focusedContainerColor   = ColorCampo,
@@ -233,6 +233,8 @@ fun PantallaRegistro(
             singleLine = true,
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor        = ColorTexto,
+                unfocusedTextColor      = ColorTexto,
                 focusedBorderColor      = ColorMorado,
                 unfocusedBorderColor    = ColorBorde,
                 focusedContainerColor   = ColorCampo,
@@ -262,6 +264,8 @@ fun PantallaRegistro(
             },
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor        = ColorTexto,
+                unfocusedTextColor      = ColorTexto,
                 focusedBorderColor      = ColorMorado,
                 unfocusedBorderColor    = ColorBorde,
                 focusedContainerColor   = ColorCampo,
@@ -291,6 +295,8 @@ fun PantallaRegistro(
             },
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor        = ColorTexto,
+                unfocusedTextColor      = ColorTexto,
                 focusedBorderColor      = ColorMorado,
                 unfocusedBorderColor    = ColorBorde,
                 focusedContainerColor   = ColorCampo,

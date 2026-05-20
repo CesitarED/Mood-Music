@@ -1,6 +1,7 @@
 package com.example.moodmusic.viewmodel
 
 import android.app.Application
+import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -40,7 +41,17 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     var usuarioActual by mutableStateOf<UsuarioEntity?>(null)
         private set
 
+    var isDarkMode by mutableStateOf(sessionManager.isDarkMode())
+        private set
+
+    private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+        if (key == SessionManager.DARK_MODE) {
+            isDarkMode = sharedPreferences.getBoolean(key, false)
+        }
+    }
+
     init {
+        sessionManager.getPrefs().registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         viewModelScope.launch {
             _usernameSession.flatMapLatest { username ->
                 if (username != null) dao.buscarPorUsernameFlow(username)
@@ -49,6 +60,16 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                 usuarioActual = usuario
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        sessionManager.getPrefs().unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+    }
+
+    fun toggleDarkMode(enabled: Boolean) {
+        isDarkMode = enabled
+        sessionManager.setDarkMode(enabled)
     }
 
     fun registrar(

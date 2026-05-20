@@ -7,7 +7,7 @@ import com.example.moodmusic.data.local.dao.UsuarioDao
 import com.example.moodmusic.data.model.EstadoAnimoEntity
 import com.example.moodmusic.data.model.UsuarioEntity
 
-@Database(entities = [UsuarioEntity::class, EstadoAnimoEntity::class], version = 3)
+@Database(entities = [UsuarioEntity::class, EstadoAnimoEntity::class], version = 4)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun usuarioDao(): UsuarioDao
     abstract fun estadoAnimoDao(): EstadoAnimoDao

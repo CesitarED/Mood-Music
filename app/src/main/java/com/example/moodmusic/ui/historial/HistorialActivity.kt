@@ -101,7 +101,6 @@ fun PantallaHistorial(
         lista
     }
 
-    // Formateadores para comparar con la base de datos
     val sdfDia = SimpleDateFormat("d", Locale("es", "ES"))
     val sdfMes = SimpleDateFormat("MMMM", Locale("es", "ES"))
     val sdfAnio = SimpleDateFormat("yyyy", Locale("es", "ES"))
@@ -121,7 +120,7 @@ fun PantallaHistorial(
                 modifier = Modifier
                     .size(45.dp)
                     .shadow(2.dp, RoundedCornerShape(12.dp))
-                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .background(ColorCampo, RoundedCornerShape(12.dp))
                     .border(1.dp, ColorMorado.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
                     .clickable { onVolver() },
                 contentAlignment = Alignment.Center
@@ -160,8 +159,8 @@ fun PantallaHistorial(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
-                    .background(Color.White, RoundedCornerShape(12.dp))
-                    .border(1.dp, Color(0xFFE0E0E8), RoundedCornerShape(12.dp))
+                    .background(ColorCampo, RoundedCornerShape(12.dp))
+                    .border(1.dp, ColorBorde, RoundedCornerShape(12.dp))
                     .clickable { expansionDropdown = true }
                     .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.CenterStart
@@ -172,19 +171,22 @@ fun PantallaHistorial(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(opcionesSemanas[semanaSeleccionada], color = ColorTexto)
-                    Icon(imageVector = Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.LightGray)
+                    Icon(imageVector = Icons.Default.KeyboardArrowDown, contentDescription = null, tint = ColorSubtexto)
                 }
             }
             DropdownMenu(
                 expanded = expansionDropdown,
                 onDismissRequest = { expansionDropdown = false },
-                modifier = Modifier.fillMaxWidth(0.85f).background(Color.White)
+                modifier = Modifier.fillMaxWidth(0.85f).background(ColorCampo)
             ) {
                 opcionesSemanas.forEachIndexed { index, opcion ->
-                    DropdownMenuItem(text = { Text(opcion) }, onClick = {
-                        semanaSeleccionada = index
-                        expansionDropdown = false
-                    })
+                    DropdownMenuItem(
+                        text = { Text(opcion, color = ColorTexto) },
+                        onClick = {
+                            semanaSeleccionada = index
+                            expansionDropdown = false
+                        }
+                    )
                 }
             }
         }
@@ -206,7 +208,6 @@ fun PantallaHistorial(
                     val mesStr = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
                     val anioStr = sdfAnio.format(cal.time)
 
-                    // Búsqueda del estado guardado coincidiendo con el nuevo formato (nombre del mes)
                     val estadoDelDia = listaEstados.find {
                         it.dia == diaStr && it.mes == mesStr && it.anio == anioStr
                     }
@@ -227,12 +228,18 @@ fun PantallaHistorial(
 @Composable
 fun ItemHistorialDia(fechaLabel: String, estado: EstadoAnimoEntity?, onClick: () -> Unit) {
     val registrado = estado != null
+    val isDark = LocalIsDarkTheme.current
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .shadow(if (registrado) 4.dp else 0.dp, RoundedCornerShape(16.dp))
-            .background(if (registrado) Color(0xFFF0F4FF) else Color.Transparent, RoundedCornerShape(16.dp))
+            .background(
+                if (registrado) {
+                    if (isDark) Color(0xFF1E2A4A) else Color(0xFFF0F4FF)
+                } else Color.Transparent, 
+                RoundedCornerShape(16.dp)
+            )
             .clickable(enabled = registrado) { onClick() }
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -242,7 +249,7 @@ fun ItemHistorialDia(fechaLabel: String, estado: EstadoAnimoEntity?, onClick: ()
         Icon(
             imageVector = if (registrado) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
             contentDescription = null,
-            tint = if (registrado) ColorTexto else Color.LightGray,
+            tint = if (registrado) ColorTexto else ColorSubtexto,
             modifier = Modifier.size(24.dp)
         )
         if (registrado) {

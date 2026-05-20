@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -15,26 +16,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.moodmusic.R
 import com.example.moodmusic.ui.auth.InicioSesionActivity
-import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
 import kotlinx.coroutines.delay
-
-// -------------------------------------------------------
-// Colores del tema (declarados aquí para todo el proyecto)
-// -------------------------------------------------------
-val ColorFondo     = Color(0xFFF0F0F5)
-val ColorAzul      = Color(0xFF1DB8D4)
-val ColorMorado    = Color(0xFF8B5CF6)
-val ColorTexto     = Color(0xFF1A1A2E)
-val ColorSubtexto  = Color(0xFF888888)
-val ColorCampo     = Color(0xFFFFFFFF)
-val ColorBorde     = Color(0xFFE0E0E8)
-val ColorBotonGris = Color(0xFFE8E8EE)
 
 // -------------------------------------------------------
 // MainActivity - Pantalla de carga (Splash)
@@ -90,14 +81,6 @@ fun PantallaCarga() {
         verticalArrangement = Arrangement.Center
     ) {
         LogoSplash()
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "MOOD & MUSIC",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 3.sp,
-            color = ColorTexto
-        )
         Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = "Siente tu música",
@@ -117,20 +100,16 @@ fun PantallaCarga() {
 
 @Composable
 fun LogoSplash() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "♩", fontSize = 28.sp, color = ColorMorado)
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "〜〜〜",
-                fontSize = 32.sp,
-                fontFamily = FontFamily.Cursive,
-                color = ColorAzul
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(text = "♪", fontSize = 28.sp, color = ColorMorado)
-        }
-    }
+    val isDark = LocalIsDarkTheme.current
+    val logoRes = if (isDark) R.drawable.logo_app_oscuro else R.drawable.logo_app_claro
+
+    Image(
+        painter = painterResource(id = logoRes),
+        contentDescription = "Logo Mood & Music",
+        modifier = Modifier
+            .width(280.dp)
+            .wrapContentHeight()
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)
