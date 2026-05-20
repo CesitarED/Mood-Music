@@ -13,8 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -25,7 +25,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.moodmusic.data.model.Cancion
+import android.os.Build
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.moodmusic.data.model.UsuarioEntity
+import com.example.moodmusic.data.remote.model.TrackDto
+import com.example.moodmusic.viewmodel.MusicViewModel
+import com.example.moodmusic.viewmodel.MusicViewModelFactory
+import coil.compose.AsyncImage
 import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.perfil.PerfilActivity
 import com.example.moodmusic.ui.registro_estado.EstadoAnimoActivity
@@ -35,12 +44,26 @@ class MusicaRecomendadaActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val usuario = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("usuario", UsuarioEntity::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getSerializableExtra("usuario") as? UsuarioEntity
+        }
+
+        val mood = intent.getStringExtra("mood") ?: "happy"
+
         setContent {
             MoodMusicTheme {
                 PantallaMusicaRecomendada(
+                    usuario = usuario,
+                    mood = mood,
                     onVolver = {
-                        val intent = Intent(this, PerfilActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        val intent = Intent(this, PerfilActivity::class.java).apply {
+                            putExtra("usuario", usuario)
+                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        }
                         startActivity(intent)
                         finish()
                     }
@@ -51,19 +74,18 @@ class MusicaRecomendadaActivity : ComponentActivity() {
 }
 
 @Composable
-fun PantallaMusicaRecomendada(onVolver: () -> Unit) {
-    val canciones = listOf(
-        Cancion("As It Was", "Harry Styles"),
-        Cancion("Blinding Lights", "The Weeknd"),
-        Cancion("Flowers", "Miley Cyrus"),
-        Cancion("Kill Bill", "SZA"),
-        Cancion("Anti-Hero", "Taylor Swift"),
-        Cancion("Creepin'", "Metro Boomin, The Weeknd, 21 Savage"),
-        Cancion("Die For You", "The Weeknd & Ariana Grande"),
-        Cancion("Calm Down", "Rema & Selena Gomez"),
-        Cancion("Unholy", "Sam Smith & Kim Petras"),
-        Cancion("I'm Good (Blue)", "David Guetta & Bebe Rexha")
-    )
+fun PantallaMusicaRecomendada(
+    usuario: UsuarioEntity?,
+    mood: String,
+    viewModel: MusicViewModel = viewModel(factory = MusicViewModelFactory()),
+    onVolver: () -> Unit
+) {
+    LaunchedEffect(Unit) {
+        viewModel.cargarCanciones(mood)
+    }
+
+    val canciones = viewModel.canciones
+    val cargando = viewModel.cargando
 
     // Degradado de fondo similar al de la imagen
     val fondoGradient = Brush.verticalGradient(
@@ -124,8 +146,16 @@ fun PantallaMusicaRecomendada(onVolver: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
-                items(canciones) { cancion ->
-                    ItemCancion(cancion)
+                if (cargando) {
+                    item {
+                        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = ColorMorado)
+                        }
+                    }
+                } else {
+                    items(canciones) { cancion ->
+                        ItemCancion(cancion)
+                    }
                 }
             }
         }
@@ -133,12 +163,21 @@ fun PantallaMusicaRecomendada(onVolver: () -> Unit) {
 }
 
 @Composable
-fun ItemCancion(cancion: Cancion) {
+fun ItemCancion(track: TrackDto) {
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(110.dp)
-            .shadow(4.dp, RoundedCornerShape(24.dp)),
+            .shadow(4.dp, RoundedCornerShape(24.dp))
+            .clickable {
+                val query = "${track.artist.name} ${track.name}"
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = android.net.Uri.parse("https://www.youtube.com/results?search_query=$query")
+                }
+                context.startActivity(intent)
+            },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -148,26 +187,36 @@ fun ItemCancion(cancion: Cancion) {
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Placeholder imagen (Gris como en la imagen)
+            val imageUrl = track.image.lastOrNull()?.url ?: ""
+            
             Box(
                 modifier = Modifier
                     .size(86.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .background(Color(0xFFAAB8C2))
-            )
+            ) {
+                if (imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = cancion.nombre,
+                    text = track.name,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = ColorTexto
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = cancion.artista,
+                    text = track.artist.name,
                     fontSize = 14.sp,
                     color = ColorSubtexto,
                     fontWeight = FontWeight.Medium
@@ -181,6 +230,6 @@ fun ItemCancion(cancion: Cancion) {
 @Composable
 fun PreviewMusicaRecomendada() {
     MoodMusicTheme {
-        PantallaMusicaRecomendada({})
+        PantallaMusicaRecomendada(usuario = null, mood = "happy", onVolver = {})
     }
 }

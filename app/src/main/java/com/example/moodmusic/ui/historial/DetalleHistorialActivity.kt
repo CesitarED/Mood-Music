@@ -37,6 +37,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+import com.example.moodmusic.data.remote.api.MusicApiService
+import com.example.moodmusic.data.repository.MusicRepository
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
 class DetalleHistorialActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,7 +74,16 @@ fun PantallaDetalleHistorial(
     // Inicializamos la nota con la que ya existe en la base de datos
     var notaEditable by remember { mutableStateOf(estadoInicial?.nota ?: "") }
     val context = LocalContext.current
-    val scope = CoroutineScope(Dispatchers.Main)
+    val scope = rememberCoroutineScope()
+
+    val musicRepository: MusicRepository by lazy {
+        val retrofit = Retrofit.Builder()
+            .baseUrl(MusicApiService.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        val api = retrofit.create(MusicApiService::class.java)
+        MusicRepository(api)
+    }
 
     Column(
         modifier = Modifier
@@ -210,14 +224,20 @@ fun PantallaDetalleHistorial(
             onClick = {
                 val currentEstado = estado
                 if (currentEstado != null) {
-                    // Mantenemos emoción, avatar y fecha, solo actualizamos la nota
                     val estadoActualizado = currentEstado.copy(nota = notaEditable)
-                    CoroutineScope(Dispatchers.IO).launch {
+                    scope.launch(Dispatchers.IO) {
+                        // Guardar en Room
                         DatabaseProvider.getDatabase(context).estadoAnimoDao().insertar(estadoActualizado)
-                        scope.launch {
+                        
+                        // Guardar en Firestore si tiene ID
+                        currentEstado.firestoreId?.let { id ->
+                            musicRepository.actualizarNotaCloud(id, notaEditable)
+                        }
+
+                        scope.launch(Dispatchers.Main) {
                             estado = estadoActualizado
                             Toast.makeText(context, "Registro actualizado", Toast.LENGTH_SHORT).show()
-                            onVolver() // Volvemos al historial tras guardar
+                            onVolver()
                         }
                     }
                 }

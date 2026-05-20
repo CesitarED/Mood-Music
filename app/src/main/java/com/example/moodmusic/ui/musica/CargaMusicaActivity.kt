@@ -28,14 +28,30 @@ import com.example.moodmusic.ui.main.ColorTexto
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 import kotlinx.coroutines.delay
 
+import com.example.moodmusic.data.model.UsuarioEntity
+import android.os.Build
+
 class CargaMusicaActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val usuario = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("usuario", UsuarioEntity::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getSerializableExtra("usuario") as? UsuarioEntity
+        }
+
+        val mood = intent.getStringExtra("mood") ?: "happy"
+
         setContent {
             MoodMusicTheme {
                 PantallaCargaPacman {
-                    val intent = Intent(this, MusicaRecomendadaActivity::class.java)
+                    val intent = Intent(this, MusicaRecomendadaActivity::class.java).apply {
+                        putExtra("usuario", usuario)
+                        putExtra("mood", mood)
+                    }
                     startActivity(intent)
                     finish()
                 }

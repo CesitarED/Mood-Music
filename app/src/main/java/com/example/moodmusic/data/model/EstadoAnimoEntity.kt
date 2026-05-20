@@ -17,5 +17,6 @@ data class EstadoAnimoEntity(
     val mes: String,
     val anio: String,
     val fechaCompleta: Long,
-    val avatar: Int = -1
+    val avatar: Int = -1,
+    var firestoreId: String? = null
 ) : Serializable
