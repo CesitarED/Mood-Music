@@ -57,17 +57,15 @@ class SeleccionAvatarActivity : ComponentActivity() {
                     onVolver = { finish() },
                     onContinuar = { avatarSeleccionado ->
 
-                        // 2. Actualizar en BD y en el objeto local
+                        // Guardamos el avatar seleccionado tanto en local como en Firestore
                         viewModel.actualizarAvatar(avatarSeleccionado)
                         
-                        // Si venimos del perfil, volvemos al perfil
-                        // Si es el flujo inicial, vamos a EstadoAnimo
+                        // Si el usuario viene desde su perfil, solo cerramos la pantalla
                         if (intent.getBooleanExtra("desdePerfil", false)) {
                             finish()
                         } else {
-                            val updatedUsuario = usuario?.copy(avatar = avatarSeleccionado)
+                            // Si es la primera vez (flujo de inicio), vamos a registrar el estado de ánimo
                             val intent = Intent(this@SeleccionAvatarActivity, EstadoAnimoActivity::class.java)
-                            intent.putExtra("usuario", updatedUsuario)
                             startActivity(intent)
                             finish()
                         }

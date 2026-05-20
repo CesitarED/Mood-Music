@@ -30,38 +30,69 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moodmusic.data.model.EstadoAnimo
 import com.example.moodmusic.data.model.UsuarioEntity
+import androidx.lifecycle.ViewModelProvider
 import com.example.moodmusic.ui.historial.HistorialActivity
+import com.example.moodmusic.ui.perfil.PerfilActivity
 import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.EstadoAnimoViewModel
+import com.example.moodmusic.viewmodel.UsuarioViewModel
 
 class EstadoAnimoActivity : ComponentActivity() {
+    
+    // Usamos el ViewModel para obtener los datos del usuario de la sesión actual
+    private val usuarioViewModel: UsuarioViewModel by lazy {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+            .create(UsuarioViewModel::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val usuario = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getSerializableExtra("usuario", UsuarioEntity::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getSerializableExtra("usuario") as? UsuarioEntity
-        }
-
         setContent {
             MoodMusicTheme {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val usuarioActual = usuarioViewModel.usuarioActual
+                
+                // Validación de seguridad: Redirigir si ya registró su emoción hoy
+                LaunchedEffect(usuarioActual) {
+                    if (usuarioActual != null) {
+                        val user = usuarioActual
+                        val db = com.example.moodmusic.data.local.database.DatabaseProvider.getDatabase(context)
+                        val timeZone = java.util.TimeZone.getTimeZone("America/Bogota")
+                        val cal = java.util.Calendar.getInstance(timeZone)
+                        
+                        val sdfDia = java.text.SimpleDateFormat("d", java.util.Locale("es", "ES")).apply { this.timeZone = timeZone }
+                        val sdfMes = java.text.SimpleDateFormat("MMMM", java.util.Locale("es", "ES")).apply { this.timeZone = timeZone }
+                        val sdfAnio = java.text.SimpleDateFormat("yyyy", java.util.Locale("es", "ES")).apply { this.timeZone = timeZone }
+                        
+                        val dia = sdfDia.format(cal.time)
+                        val mes = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
+                        val anio = sdfAnio.format(cal.time)
+
+                        val yaRegistroHoy = db.estadoAnimoDao().obtenerRegistroHoy(user.username, dia, mes, anio)
+                        
+                        if (yaRegistroHoy != null) {
+                            // Si ya tiene registro, directo al perfil
+                            val intent = Intent(this@EstadoAnimoActivity, PerfilActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                            finish()
+                        }
+                    }
+                }
+
                 PantallaEstadoAnimo(
-                    usuario = usuario,
+                    usuario = usuarioActual,
                     onGuardar = { estadoAnimo ->
+                        // Ya no pasamos el usuario por intent, se recupera en la siguiente actividad
                         val intent = Intent(this, RegistrarEstadoActivity::class.java).apply {
-                            putExtra("usuario", usuario)
                             putExtra("estadoAnimo", estadoAnimo)
                         }
                         startActivity(intent)
                     },
                     onVerHistorial = {
-                        val intent = Intent(this, HistorialActivity::class.java).apply {
-                            putExtra("usuario", usuario)
-                        }
-                        startActivity(intent)
+                        startActivity(Intent(this, HistorialActivity::class.java))
                     }
                 )
             }

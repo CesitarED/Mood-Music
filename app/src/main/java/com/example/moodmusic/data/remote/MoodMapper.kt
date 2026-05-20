@@ -6,14 +6,14 @@ object MoodMapper {
      */
     fun mapMoodToTag(mood: String): String {
         return when (mood.lowercase()) {
-            "eufórico" -> "party, energetic"
-            "feliz" -> "happy, upbeat, pop"
-            "motivado" -> "workout, motivation"
+            "eufórico" -> "party"
+            "feliz" -> "happy"
+            "motivado" -> "workout"
             "inspirado" -> "inspirational"
-            "en paz" -> "calm, ambient, chillout"
-            "reflexivo" -> "reflective, piano"
-            "triste" -> "sad, melancholy"
-            "enojado" -> "heavy metal, rock"
+            "en paz" -> "chillout"
+            "reflexivo" -> "reflective"
+            "triste" -> "sad"
+            "enojado" -> "rock"
             else -> "pop"
         }
     }

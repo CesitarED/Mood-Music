@@ -63,54 +63,53 @@ class InicioSesionActivity : ComponentActivity() {
                 val mensajeError = viewModel.mensajeError
                 val context = LocalContext.current
 
-                LaunchedEffect(loginExitoso) {
-                    if (loginExitoso) {
-                        val usuario = viewModel.usuarioActual
-                        usuario?.let { user ->
-                            // Lógica de redirección después del login
-                            CoroutineScope(Dispatchers.IO).launch {
-                                val db = DatabaseProvider.getDatabase(context)
+                LaunchedEffect(loginExitoso, viewModel.usuarioActual) {
+                    if (loginExitoso && viewModel.usuarioActual != null) {
+                        val user = viewModel.usuarioActual!!
+                        // Lógica de redirección después del login
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val db = DatabaseProvider.getDatabase(context)
+                            
+                            if (user.avatar == -1) {
+                                // Redirección obligatoria si no tiene avatar (recién registrado)
+                                val intent = Intent(this@InicioSesionActivity, SeleccionAvatarActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                startActivity(intent)
+                            } else {
+                                // 🟢 YA tiene avatar -> verificar registro de hoy
+                                val timeZone = TimeZone.getTimeZone("America/Bogota")
+                                val cal = Calendar.getInstance(timeZone)
                                 
-                                if (user.avatar == -1) {
-                                    // 🔴 NO tiene avatar
-                                    val intent = Intent(this@InicioSesionActivity, SeleccionAvatarActivity::class.java)
-                                    intent.putExtra("usuario", user)
-                                    startActivity(intent)
+                                val sdfDia = SimpleDateFormat("d", Locale("es", "ES"))
+                                val sdfMes = SimpleDateFormat("MMMM", Locale("es", "ES"))
+                                val sdfAnio = SimpleDateFormat("yyyy", Locale("es", "ES"))
+                                
+                                sdfDia.timeZone = timeZone
+                                sdfMes.timeZone = timeZone
+                                sdfAnio.timeZone = timeZone
+
+                                val diaActual = sdfDia.format(cal.time)
+                                val mesActual = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
+                                val anioActual = sdfAnio.format(cal.time)
+
+                                val registroHoy = db.estadoAnimoDao().obtenerRegistroHoy(
+                                    user.username,
+                                    diaActual,
+                                    mesActual,
+                                    anioActual
+                                )
+
+                                val intent = if (registroHoy != null) {
+                                    Intent(this@InicioSesionActivity, PerfilActivity::class.java)
                                 } else {
-                                    // 🟢 YA tiene avatar -> verificar registro de hoy
-                                    val timeZone = TimeZone.getTimeZone("America/Bogota")
-                                    val cal = Calendar.getInstance(timeZone)
-                                    
-                                    val sdfDia = SimpleDateFormat("d", Locale("es", "ES"))
-                                    val sdfMes = SimpleDateFormat("MMMM", Locale("es", "ES"))
-                                    val sdfAnio = SimpleDateFormat("yyyy", Locale("es", "ES"))
-                                    
-                                    sdfDia.timeZone = timeZone
-                                    sdfMes.timeZone = timeZone
-                                    sdfAnio.timeZone = timeZone
-
-                                    val diaActual = sdfDia.format(cal.time)
-                                    val mesActual = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
-                                    val anioActual = sdfAnio.format(cal.time)
-
-                                    val registroHoy = db.estadoAnimoDao().obtenerRegistroHoy(
-                                        user.username,
-                                        diaActual,
-                                        mesActual,
-                                        anioActual
-                                    )
-
-                                    val intent = if (registroHoy != null) {
-                                        Intent(this@InicioSesionActivity, PerfilActivity::class.java)
-                                    } else {
-                                        Intent(this@InicioSesionActivity, EstadoAnimoActivity::class.java)
-                                    }
-                                    intent.putExtra("usuario", user)
-                                    startActivity(intent)
+                                    Intent(this@InicioSesionActivity, EstadoAnimoActivity::class.java)
                                 }
-                                viewModel.limpiarEstados()
-                                finish()
+                                // No hace falta pasar el usuario por intent si el ViewModel lo maneja por sesión
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                startActivity(intent)
                             }
+                            viewModel.limpiarEstados()
+                            finish()
                         }
                     }
                 }

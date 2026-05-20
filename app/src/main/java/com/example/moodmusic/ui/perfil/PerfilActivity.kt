@@ -56,7 +56,10 @@ class PerfilActivity : ComponentActivity() {
                         startActivity(intent)
                     },
                     onVerMusica = {
-                        val intent = Intent(this, CargaMusicaActivity::class.java)
+                        val intent = Intent(this, CargaMusicaActivity::class.java).apply {
+                            // Intentamos obtener el último estado para pasar el mood
+                            // O simplemente dejamos que CargaMusica maneje el flujo si no hay mood
+                        }
                         startActivity(intent)
                     },
                     onCambiarPass = {
@@ -168,9 +171,9 @@ fun PantallaPerfil(
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
-        // El nombre ahora se actualizará solo
+        // Mostramos el nombre del usuario o cargando...
         Text(
-            text = "Hola! @${usuario?.nombre ?: "..."}",
+            text = "Hola! @${usuario?.username ?: "..."}",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = ColorTexto

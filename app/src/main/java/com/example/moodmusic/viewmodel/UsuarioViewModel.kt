@@ -115,13 +115,18 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     fun login(nombreOUsername: String, contrasena: String) {
         viewModelScope.launch {
             try {
-                val correoFinal = if (nombreOUsername.contains("@")) {
+                var userLocal = if (nombreOUsername.contains("@")) {
+                    dao.buscarPorCorreo(nombreOUsername)
+                } else {
+                    dao.buscarPorUsername(nombreOUsername)
+                }
+
+                val correoFinal = userLocal?.correo ?: if (nombreOUsername.contains("@")) {
                     nombreOUsername
                 } else {
-                    dao.buscarPorUsername(nombreOUsername)?.correo 
-                        ?: firestore.collection("usuarios")
-                            .whereEqualTo("username", nombreOUsername)
-                            .get().await().documents.firstOrNull()?.getString("correo")
+                    firestore.collection("usuarios")
+                        .whereEqualTo("username", nombreOUsername)
+                        .get().await().documents.firstOrNull()?.getString("correo")
                 }
 
                 if (correoFinal == null) {
@@ -131,25 +136,25 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
 
                 auth.signInWithEmailAndPassword(correoFinal, contrasena).await()
                 
-                val userRoom = dao.buscarPorCorreo(correoFinal)
-                if (userRoom != null) {
-                    sessionManager.saveSession(userRoom.username)
-                    _usernameSession.value = userRoom.username
-                } else {
-                    val uid = auth.currentUser?.uid
-                    if (uid != null) {
-                        val doc = firestore.collection("usuarios").document(uid).get().await()
-                        val username = doc.getString("username") ?: "User"
-                        val nombre = doc.getString("nombre") ?: ""
-                        val apellido = doc.getString("apellido") ?: ""
-                        val edad = doc.getString("edad") ?: ""
-                        val avatar = doc.getLong("avatar")?.toInt() ?: -1
-                        
-                        val nuevoUsuario = UsuarioEntity(username, nombre, apellido, edad, correoFinal, contrasena, avatar)
-                        dao.insertar(nuevoUsuario)
-                        sessionManager.saveSession(username)
-                        _usernameSession.value = username
+                val uid = auth.currentUser?.uid
+                if (uid != null) {
+                    val doc = firestore.collection("usuarios").document(uid).get().await()
+                    val avatarCloud = doc.getLong("avatar")?.toInt() ?: -1
+                    val usernameCloud = doc.getString("username") ?: "User"
+                    val nombre = doc.getString("nombre") ?: ""
+                    val apellido = doc.getString("apellido") ?: ""
+                    val edad = doc.getString("edad") ?: ""
+
+                    if (userLocal == null) {
+                        userLocal = UsuarioEntity(usernameCloud, nombre, apellido, edad, correoFinal, contrasena, avatarCloud)
+                        dao.insertar(userLocal)
+                    } else if (userLocal.avatar != avatarCloud) {
+                        userLocal.avatar = avatarCloud
+                        dao.actualizar(userLocal)
                     }
+                    
+                    sessionManager.saveSession(userLocal.username)
+                    _usernameSession.value = userLocal.username
                 }
                 
                 loginExitoso = true
@@ -163,13 +168,22 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
 
     fun actualizarAvatar(avatar: Int) {
         viewModelScope.launch {
-            usuarioActual?.let { usuario ->
-                val actualizado = usuario.copy(avatar = avatar)
-                dao.actualizar(actualizado)
-                
+            // Buscamos el username de la sesión activa para asegurar que actualizamos al usuario correcto
+            val usernameActual = sessionManager.getUsername()
+            if (usernameActual != null) {
+                // 1. Actualización en la base de datos local (Room)
+                val usuarioEnDB = dao.buscarPorUsername(usernameActual)
+                usuarioEnDB?.let {
+                    it.avatar = avatar
+                    dao.actualizar(it)
+                }
+
+                // 2. Sincronización con la nube (Firestore)
                 val uid = auth.currentUser?.uid
                 if (uid != null) {
-                    firestore.collection("usuarios").document(uid).update("avatar", avatar)
+                    firestore.collection("usuarios").document(uid)
+                        .update("avatar", avatar)
+                        .await() // Esperamos a que se guarde en la nube
                 }
             }
         }
@@ -200,6 +214,8 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 usuarioActual?.let { usuario ->
+                    val viejoUsername = usuario.username
+                    
                     // 1. Actualizar en Firestore
                     val uid = auth.currentUser?.uid
                     if (uid != null) {
@@ -213,7 +229,7 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                         firestore.collection("usuarios").document(uid).update(updates).await()
                     }
 
-                    // 2. Actualizar localmente en Room
+                    // 2. Crear el objeto actualizado
                     val actualizado = usuario.copy(
                         nombre = nombre,
                         apellido = apellido,
@@ -222,13 +238,17 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                         correo = correo
                     )
                     
-                    // Si el username cambió, necesitamos actualizar la sesión
-                    if (usuario.username != username) {
+                    // 3. Si el username cambió, actualizar sesión y referencias en historial
+                    if (viejoUsername != username) {
                         sessionManager.saveSession(username)
                         _usernameSession.value = username
+                        // Actualizar historial para que no se pierdan los registros antiguos
+                        estadoAnimoDao.actualizarUsernameHistorial(viejoUsername, username)
                     }
                     
+                    // 4. Guardar en Room y ACTUALIZAR ESTADO EN MEMORIA
                     dao.actualizar(actualizado)
+                    usuarioActual = actualizado
                 }
                 mensajeError = ""
             } catch (e: Exception) {

@@ -30,6 +30,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moodmusic.data.model.EstadoAnimo
 import com.example.moodmusic.data.model.UsuarioEntity
 import com.example.moodmusic.ui.musica.MusicaRecomendadaActivity
+import androidx.lifecycle.ViewModelProvider
+import com.example.moodmusic.viewmodel.UsuarioViewModel
+import com.example.moodmusic.ui.perfil.PerfilActivity
 import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.EstadoAnimoViewModel
 import com.example.moodmusic.viewmodel.MusicViewModel
@@ -41,16 +44,15 @@ import java.util.*
 import com.example.moodmusic.ui.musica.CargaMusicaActivity
 
 class RegistrarEstadoActivity : ComponentActivity() {
+
+    private val usuarioViewModel: UsuarioViewModel by lazy {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+            .create(UsuarioViewModel::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        val usuario = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getSerializableExtra("usuario", UsuarioEntity::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getSerializableExtra("usuario") as? UsuarioEntity
-        }
 
         val estadoAnimo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("estadoAnimo", EstadoAnimo::class.java)
@@ -61,14 +63,15 @@ class RegistrarEstadoActivity : ComponentActivity() {
 
         setContent {
             MoodMusicTheme {
+                val usuarioActual = usuarioViewModel.usuarioActual
+
                 PantallaRegistrarEstado(
-                    usuario = usuario,
+                    usuario = usuarioActual,
                     estadoAnimo = estadoAnimo,
                     onVolver = { finish() },
                     onGuardarExitoso = { moodName ->
-                        Toast.makeText(this, "Estado guardado correctamente", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "¡Estado guardado!", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this, CargaMusicaActivity::class.java).apply {
-                            putExtra("usuario", usuario)
                             putExtra("mood", moodName)
                         }
                         startActivity(intent)
@@ -202,9 +205,14 @@ fun PantallaRegistrarEstado(
         Button(
             onClick = {
                 if (usuario != null && estadoAnimo != null) {
+                    if (usuario.avatar == -1) {
+                        Toast.makeText(context, "Por favor selecciona un avatar primero", Toast.LENGTH_LONG).show()
+                        return@Button
+                    }
+
                     viewModel.seleccionarEstado(estadoAnimo)
                     
-                    // Guardar en Firestore
+                    // Sincronizar con la nube
                     musicViewModel.guardarRegistroCloud(
                         emocion = estadoAnimo.nombre,
                         emoji = estadoAnimo.emoji,
@@ -215,14 +223,14 @@ fun PantallaRegistrarEstado(
                         anio = anioActual
                     )
 
-                    // Guardar en Room y navegar
+                    // Guardar localmente y navegar
                     viewModel.guardarEstado(usuario.username, nota, usuario.avatar) {
                         onGuardarExitoso(estadoAnimo.nombre)
                     }
                 } else {
                     Toast.makeText(
                         context,
-                        "Error: Faltan datos del usuario o emoción",
+                        "Error: No se pudo recuperar tu información de usuario",
                         Toast.LENGTH_SHORT
                     ).show()
                 }

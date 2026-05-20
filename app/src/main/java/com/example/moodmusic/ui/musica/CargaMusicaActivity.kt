@@ -28,29 +28,64 @@ import com.example.moodmusic.ui.main.ColorTexto
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 import kotlinx.coroutines.delay
 
+import androidx.compose.ui.platform.LocalContext
 import com.example.moodmusic.data.model.UsuarioEntity
 import android.os.Build
 
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.lifecycle.ViewModelProvider
+import com.example.moodmusic.viewmodel.UsuarioViewModel
+
 class CargaMusicaActivity : ComponentActivity() {
+
+    private val usuarioViewModel: UsuarioViewModel by lazy {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+            .create(UsuarioViewModel::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val usuario = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getSerializableExtra("usuario", UsuarioEntity::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getSerializableExtra("usuario") as? UsuarioEntity
-        }
-
-        val mood = intent.getStringExtra("mood") ?: "happy"
-
+        val moodFromIntent = intent.getStringExtra("mood")
+        
         setContent {
             MoodMusicTheme {
+                val context = LocalContext.current
+                val usuarioActual = usuarioViewModel.usuarioActual
+                var moodToUse by remember { mutableStateOf(moodFromIntent) }
+                
+                // Si no viene un mood por intent (desde perfil), lo buscamos en la DB
+                LaunchedEffect(usuarioActual) {
+                    if (moodToUse == null && usuarioActual != null) {
+                        val db = com.example.moodmusic.data.local.database.DatabaseProvider.getDatabase(context)
+                        val timeZone = java.util.TimeZone.getTimeZone("America/Bogota")
+                        val cal = java.util.Calendar.getInstance(timeZone)
+                        
+                        val sdfDia = java.text.SimpleDateFormat("d", java.util.Locale("es", "ES")).apply { this.timeZone = timeZone }
+                        val sdfMes = java.text.SimpleDateFormat("MMMM", java.util.Locale("es", "ES")).apply { this.timeZone = timeZone }
+                        val sdfAnio = java.text.SimpleDateFormat("yyyy", java.util.Locale("es", "ES")).apply { this.timeZone = timeZone }
+                        
+                        val dia = sdfDia.format(cal.time)
+                        val mes = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
+                        val anio = sdfAnio.format(cal.time)
+
+                        val registro = db.estadoAnimoDao().obtenerRegistroHoy(
+                            usuarioActual.username,
+                            dia,
+                            mes,
+                            anio
+                        )
+                        // Si existe registro hoy, usamos esa emoción. Si no, default a "feliz"
+                        moodToUse = registro?.nombreEstado ?: "feliz"
+                    }
+                }
+
                 PantallaCargaPacman {
                     val intent = Intent(this, MusicaRecomendadaActivity::class.java).apply {
-                        putExtra("usuario", usuario)
-                        putExtra("mood", mood)
+                        // Pasamos el usuario actual y el mood detectado
+                        putExtra("usuario", usuarioActual)
+                        putExtra("mood", moodToUse ?: "feliz")
                     }
                     startActivity(intent)
                     finish()
@@ -62,10 +97,13 @@ class CargaMusicaActivity : ComponentActivity() {
 
 @Composable
 fun PantallaCargaPacman(onFinalizar: () -> Unit) {
-    // Timer de 5 segundos
+    // Usamos rememberUpdatedState para que el delay siempre ejecute la versión 
+    // más reciente de la función, capturando el moodToUse actualizado.
+    val currentOnFinalizar by rememberUpdatedState(onFinalizar)
+
     LaunchedEffect(Unit) {
         delay(5000)
-        onFinalizar()
+        currentOnFinalizar()
     }
 
     Column(

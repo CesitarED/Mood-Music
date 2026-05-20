@@ -24,8 +24,11 @@ class MusicViewModel(private val repository: MusicRepository) : ViewModel() {
     fun cargarCanciones(mood: String) {
         viewModelScope.launch {
             cargando = true
-            canciones = repository.obtenerRecomendaciones(mood)
-            cargando = false
+            try {
+                canciones = repository.obtenerRecomendaciones(mood)
+            } finally {
+                cargando = false
+            }
         }
     }
 
