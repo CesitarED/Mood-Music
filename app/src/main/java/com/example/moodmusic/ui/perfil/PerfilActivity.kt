@@ -170,7 +170,7 @@ fun PantallaPerfil(
 
         // El nombre ahora se actualizará solo
         Text(
-            text = "Hola! @${usuario?.username ?: "..."}",
+            text = "Hola! @${usuario?.nombre ?: "..."}",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = ColorTexto

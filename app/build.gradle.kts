@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -51,6 +52,20 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.play.services.auth)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.logging)
+
+    // Coil
+    implementation(libs.coil.compose)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

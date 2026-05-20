@@ -32,6 +32,9 @@ import com.example.moodmusic.data.model.UsuarioEntity
 import com.example.moodmusic.ui.musica.MusicaRecomendadaActivity
 import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.EstadoAnimoViewModel
+import com.example.moodmusic.viewmodel.MusicViewModel
+import com.example.moodmusic.viewmodel.MusicViewModelFactory
+import androidx.lifecycle.viewmodel.compose.viewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -62,9 +65,12 @@ class RegistrarEstadoActivity : ComponentActivity() {
                     usuario = usuario,
                     estadoAnimo = estadoAnimo,
                     onVolver = { finish() },
-                    onGuardarExitoso = {
+                    onGuardarExitoso = { moodName ->
                         Toast.makeText(this, "Estado guardado correctamente", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this, CargaMusicaActivity::class.java)
+                        val intent = Intent(this, CargaMusicaActivity::class.java).apply {
+                            putExtra("usuario", usuario)
+                            putExtra("mood", moodName)
+                        }
                         startActivity(intent)
                         finish()
                     }
@@ -79,8 +85,9 @@ fun PantallaRegistrarEstado(
     usuario: UsuarioEntity?,
     estadoAnimo: EstadoAnimo?,
     viewModel: EstadoAnimoViewModel = viewModel(),
+    musicViewModel: MusicViewModel = viewModel(factory = MusicViewModelFactory()),
     onVolver: () -> Unit,
-    onGuardarExitoso: () -> Unit
+    onGuardarExitoso: (String) -> Unit
 ) {
     var nota by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -196,8 +203,21 @@ fun PantallaRegistrarEstado(
             onClick = {
                 if (usuario != null && estadoAnimo != null) {
                     viewModel.seleccionarEstado(estadoAnimo)
+                    
+                    // Guardar en Firestore
+                    musicViewModel.guardarRegistroCloud(
+                        emocion = estadoAnimo.nombre,
+                        emoji = estadoAnimo.emoji,
+                        color = estadoAnimo.color,
+                        nota = nota,
+                        dia = diaActual,
+                        mes = mesActual,
+                        anio = anioActual
+                    )
+
+                    // Guardar en Room y navegar
                     viewModel.guardarEstado(usuario.username, nota, usuario.avatar) {
-                        onGuardarExitoso()
+                        onGuardarExitoso(estadoAnimo.nombre)
                     }
                 } else {
                     Toast.makeText(

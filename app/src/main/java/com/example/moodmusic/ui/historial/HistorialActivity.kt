@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,6 +74,9 @@ fun PantallaHistorial(
     onVolver: () -> Unit,
     onVerDetalle: (EstadoAnimoEntity) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(usuario) {
         usuario?.let { viewModel.cargarHistorial(it.username) }
     }
@@ -187,28 +191,34 @@ fun PantallaHistorial(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 32.dp)
-        ) {
-            items(diasDeLaSemana) { cal ->
-                val diaStr = sdfDia.format(cal.time)
-                val mesStr = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
-                val anioStr = sdfAnio.format(cal.time)
+        if (viewModel.cargando) {
+            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = ColorMorado)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 32.dp)
+            ) {
+                items(diasDeLaSemana) { cal ->
+                    val diaStr = sdfDia.format(cal.time)
+                    val mesStr = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
+                    val anioStr = sdfAnio.format(cal.time)
 
-                // Búsqueda del estado guardado coincidiendo con el nuevo formato (nombre del mes)
-                val estadoDelDia = listaEstados.find {
-                    it.dia == diaStr && it.mes == mesStr && it.anio == anioStr
+                    // Búsqueda del estado guardado coincidiendo con el nuevo formato (nombre del mes)
+                    val estadoDelDia = listaEstados.find {
+                        it.dia == diaStr && it.mes == mesStr && it.anio == anioStr
+                    }
+
+                    val fechaFormateada = formatoDiaTexto.format(cal.time).replaceFirstChar { it.uppercase() }
+
+                    ItemHistorialDia(
+                        fechaLabel = fechaFormateada,
+                        estado = estadoDelDia,
+                        onClick = { estadoDelDia?.let { onVerDetalle(it) } }
+                    )
                 }
-
-                val fechaFormateada = formatoDiaTexto.format(cal.time).replaceFirstChar { it.uppercase() }
-
-                ItemHistorialDia(
-                    fechaLabel = fechaFormateada,
-                    estado = estadoDelDia,
-                    onClick = { estadoDelDia?.let { onVerDetalle(it) } }
-                )
             }
         }
     }
