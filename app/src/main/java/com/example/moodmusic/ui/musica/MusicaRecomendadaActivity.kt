@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.*
@@ -20,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,7 +39,6 @@ import com.example.moodmusic.viewmodel.MusicViewModelFactory
 import coil.compose.AsyncImage
 import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.perfil.PerfilActivity
-import com.example.moodmusic.ui.registro_estado.EstadoAnimoActivity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
 import com.example.moodmusic.ui.theme.*
 
@@ -89,7 +90,6 @@ fun PantallaMusicaRecomendada(
     val cargando = viewModel.cargando
     val isDark = LocalIsDarkTheme.current
 
-    // Degradado de fondo adaptado
     val fondoGradient = if (isDark) {
         Brush.verticalGradient(
             colors = listOf(
@@ -101,9 +101,9 @@ fun PantallaMusicaRecomendada(
     } else {
         Brush.verticalGradient(
             colors = listOf(
-                Color(0xFFE0F7FA), // Azul muy claro
-                Color(0xFFF3E5F5), // Morado muy claro
-                Color(0xFFFFFFFF)  // Blanco
+                Color(0xFFE0F7FA),
+                Color(0xFFF3E5F5),
+                Color(0xFFFFFFFF)
             )
         )
     }
@@ -120,7 +120,6 @@ fun PantallaMusicaRecomendada(
         ) {
             Spacer(modifier = Modifier.height(60.dp))
 
-            // Botón volver estilizado
             IconButton(
                 onClick = onVolver,
                 modifier = Modifier
@@ -197,20 +196,32 @@ fun ItemCancion(track: TrackDto) {
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val imageUrl = track.image.lastOrNull()?.url ?: ""
+            val imageUrl = track.image.find { it.url.isNotEmpty() && it.size == "extralarge" }?.url 
+                ?: track.image.find { it.url.isNotEmpty() }?.url 
+                ?: ""
+            
+            // Filtro para ignorar el placeholder de la estrella de Last.fm
+            val isPlaceholder = imageUrl.contains("2a96cbd8b46e442fc41c2b86b821562f") || imageUrl.isEmpty()
             
             Box(
                 modifier = Modifier
                     .size(86.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Color(0xFFAAB8C2))
+                    .background(ColorBotonGris)
             ) {
-                if (imageUrl.isNotEmpty()) {
+                if (!isPlaceholder) {
                     AsyncImage(
                         model = imageUrl,
-                        contentDescription = null,
+                        contentDescription = "Portada de ${track.name}",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.MusicNote,
+                        contentDescription = null,
+                        modifier = Modifier.align(Alignment.Center).size(35.dp),
+                        tint = ColorMorado.copy(alpha = 0.5f)
                     )
                 }
             }
@@ -222,14 +233,16 @@ fun ItemCancion(track: TrackDto) {
                     text = track.name,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
-                    color = ColorTexto
+                    color = ColorTexto,
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = track.artist.name,
                     fontSize = 14.sp,
                     color = ColorSubtexto,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
                 )
             }
         }

@@ -1,7 +1,6 @@
 package com.example.moodmusic.ui.avatar
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -120,21 +121,21 @@ fun PantallaSeleccionAvatar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(6.dp, RoundedCornerShape(20.dp))
-                .background(ColorCampo, RoundedCornerShape(20.dp))
+                .shadow(6.dp, RoundedCornerShape(24.dp))
+                .background(ColorCampo, RoundedCornerShape(24.dp))
                 .border(
                     2.dp,
                     Brush.linearGradient(listOf(ColorAzul, ColorMorado)),
-                    RoundedCornerShape(20.dp)
+                    RoundedCornerShape(24.dp)
                 )
-                .padding(16.dp)
+                .padding(20.dp)
         ) {
 
             LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.height(200.dp)
+                columns = GridCells.Fixed(3),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.height(320.dp)
             ) {
                 itemsIndexed(listaAvatares) { index, avatar ->
                     ItemAvatar(
@@ -154,8 +155,9 @@ fun PantallaSeleccionAvatar(
             },
             enabled = avatarSeleccionado != null,
             modifier = Modifier
-                .fillMaxWidth(0.6f)
-                .height(52.dp),
+                .fillMaxWidth(0.7f)
+                .height(56.dp)
+                .shadow(if (avatarSeleccionado != null) 8.dp else 0.dp, RoundedCornerShape(20.dp)),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = ColorCampo,
@@ -165,13 +167,14 @@ fun PantallaSeleccionAvatar(
             ),
             border = BorderStroke(
                 1.5.dp,
-                Brush.linearGradient(listOf(ColorAzul, ColorMorado))
+                if (avatarSeleccionado != null) Brush.linearGradient(listOf(ColorAzul, ColorMorado))
+                else Brush.linearGradient(listOf(ColorBorde, ColorBorde))
             )
         ) {
             Text(
                 text = "Continuar",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
             )
         }
 
@@ -187,15 +190,19 @@ fun ItemAvatar(
 ) {
     Box(
         modifier = Modifier
-            .size(70.dp)
-            .shadow(4.dp, RoundedCornerShape(16.dp))
-            .background(ColorCampo, RoundedCornerShape(16.dp))
+            .size(85.dp)
+            .shadow(if (seleccionado) 8.dp else 2.dp, CircleShape)
+            .background(
+                if (seleccionado) Brush.linearGradient(listOf(ColorAzul.copy(alpha = 0.2f), ColorMorado.copy(alpha = 0.2f)))
+                else Brush.linearGradient(listOf(ColorCampo, ColorCampo)),
+                CircleShape
+            )
             .border(
                 width = if (seleccionado) 3.dp else 1.dp,
                 brush = if (seleccionado)
                     Brush.linearGradient(listOf(ColorAzul, ColorMorado))
                 else Brush.linearGradient(listOf(ColorBorde, ColorBorde)),
-                shape = RoundedCornerShape(16.dp)
+                shape = CircleShape
             )
             .clickable { onClick() },
         contentAlignment = Alignment.Center
@@ -203,7 +210,13 @@ fun ItemAvatar(
         Image(
             painter = painterResource(id = imagen),
             contentDescription = "Avatar",
-            modifier = Modifier.size(50.dp)
+            modifier = Modifier
+                .size(70.dp)
+                .clip(CircleShape)
+                .then(
+                    if (seleccionado) Modifier.border(2.dp, ColorCampo, CircleShape)
+                    else Modifier
+                )
         )
     }
 }

@@ -112,14 +112,15 @@ fun PantallaEditarPerfil(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Avatar
+        // Avatar con Borde
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(110.dp)
                 .background(
                     Brush.linearGradient(listOf(ColorAzul.copy(alpha = 0.2f), ColorMorado.copy(alpha = 0.2f))),
                     CircleShape
-                ),
+                )
+                .border(2.5.dp, Brush.linearGradient(listOf(ColorAzul, ColorMorado)), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             val avatarRes = if (usuario != null && usuario.avatar in listaAvatares.indices) {
@@ -129,7 +130,10 @@ fun PantallaEditarPerfil(
             Image(
                 painter = painterResource(id = avatarRes),
                 contentDescription = null,
-                modifier = Modifier.size(80.dp).clip(CircleShape)
+                modifier = Modifier
+                    .size(95.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, ColorCampo, CircleShape)
             )
         }
 

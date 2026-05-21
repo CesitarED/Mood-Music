@@ -173,11 +173,12 @@ fun PantallaPerfil(
 
         Box(
             modifier = Modifier
-                .size(120.dp)
+                .size(125.dp)
                 .background(
                     Brush.linearGradient(listOf(ColorAzul.copy(alpha = 0.3f), ColorMorado.copy(alpha = 0.3f))),
                     CircleShape
-                ),
+                )
+                .border(3.dp, Brush.linearGradient(listOf(ColorAzul, ColorMorado)), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             val avatarRes = if (usuario != null && usuario.avatar in 0 until listaAvatares.size) {
@@ -190,8 +191,9 @@ fun PantallaPerfil(
                 painter = painterResource(id = avatarRes),
                 contentDescription = "Perfil",
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(110.dp)
                     .clip(CircleShape)
+                    .border(2.dp, ColorCampo, CircleShape)
             )
         }
 
