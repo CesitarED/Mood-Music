@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.*
@@ -33,7 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moodmusic.data.model.UsuarioEntity
-import com.example.moodmusic.data.remote.model.TrackDto
+import com.example.moodmusic.data.model.Cancion
 import com.example.moodmusic.viewmodel.MusicViewModel
 import com.example.moodmusic.viewmodel.MusicViewModelFactory
 import coil.compose.AsyncImage
@@ -172,7 +172,7 @@ fun PantallaMusicaRecomendada(
 }
 
 @Composable
-fun ItemCancion(track: TrackDto) {
+fun ItemCancion(cancion: Cancion) {
     val context = LocalContext.current
 
     Card(
@@ -181,7 +181,7 @@ fun ItemCancion(track: TrackDto) {
             .height(110.dp)
             .shadow(4.dp, RoundedCornerShape(24.dp))
             .clickable {
-                val query = "${track.artist.name} ${track.name}"
+                val query = "${cancion.artista} ${cancion.nombre}"
                 val intent = Intent(Intent.ACTION_VIEW).apply {
                     data = android.net.Uri.parse("https://www.youtube.com/results?search_query=$query")
                 }
@@ -196,12 +196,7 @@ fun ItemCancion(track: TrackDto) {
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val imageUrl = track.image.find { it.url.isNotEmpty() && it.size == "extralarge" }?.url 
-                ?: track.image.find { it.url.isNotEmpty() }?.url 
-                ?: ""
-            
-            // Filtro para ignorar el placeholder de la estrella de Last.fm
-            val isPlaceholder = imageUrl.contains("2a96cbd8b46e442fc41c2b86b821562f") || imageUrl.isEmpty()
+            val imageUrl = cancion.mejorImagenUrl
             
             Box(
                 modifier = Modifier
@@ -209,20 +204,25 @@ fun ItemCancion(track: TrackDto) {
                     .clip(RoundedCornerShape(18.dp))
                     .background(ColorBotonGris)
             ) {
-                if (!isPlaceholder) {
+                if (imageUrl.isNotBlank()) {
                     AsyncImage(
                         model = imageUrl,
-                        contentDescription = "Portada de ${track.name}",
+                        contentDescription = "Portada de ${cancion.nombre}",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Icon(
-                        imageVector = Icons.Default.MusicNote,
-                        contentDescription = null,
-                        modifier = Modifier.align(Alignment.Center).size(35.dp),
-                        tint = ColorMorado.copy(alpha = 0.5f)
-                    )
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = ColorMorado.copy(alpha = 0.15f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Album,
+                            contentDescription = null,
+                            modifier = Modifier.padding(20.dp),
+                            tint = ColorMorado.copy(alpha = 0.5f)
+                        )
+                    }
                 }
             }
 
@@ -230,7 +230,7 @@ fun ItemCancion(track: TrackDto) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = track.name,
+                    text = cancion.nombre,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = ColorTexto,
@@ -238,7 +238,7 @@ fun ItemCancion(track: TrackDto) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = track.artist.name,
+                    text = cancion.artista,
                     fontSize = 14.sp,
                     color = ColorSubtexto,
                     fontWeight = FontWeight.Medium,
