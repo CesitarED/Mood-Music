@@ -12,9 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MoodMusic">
 
-        <!-- Pantalla de inicio (Splash) - LAUNCHER principal -->
+        <!-- Pantalla de inicio -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.main.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MoodMusic">
             <intent-filter>
@@ -25,19 +25,68 @@
 
         <!-- Login -->
         <activity
-            android:name=".InicioSesionActivity"
+            android:name=".ui.auth.InicioSesionActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
         <!-- Registro -->
         <activity
-            android:name=".RegistroActivity"
+            android:name=".ui.auth.RegistroActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <!-- Selección de Avatar -->
+        <activity
+            android:name=".ui.avatar.SeleccionAvatarActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 
         <!-- Estado de Ánimo -->
         <activity
-            android:name=".EstadoAnimoActivity"
+            android:name=".ui.registro_estado.EstadoAnimoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <!-- Registrar Estado -->
+        <activity
+            android:name=".ui.registro_estado.RegistrarEstadoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <!-- Historial -->
+        <activity
+            android:name=".ui.historial.HistorialActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <!-- Detalle Historial -->
+        <activity
+            android:name=".ui.historial.DetalleHistorialActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <activity
+            android:name=".ui.musica.MusicaRecomendadaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <activity
+            android:name=".ui.perfil.PerfilActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <activity
+            android:name=".ui.perfil.EditarPerfilActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <activity
+            android:name=".ui.perfil.CambiarContrasenaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MoodMusic" />
+
+        <activity
+            android:name=".ui.musica.CargaMusicaActivity"
             android:exported="false"
             android:theme="@style/Theme.MoodMusic" />
 

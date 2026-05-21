@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "536890345347",
+    "project_id": "mood-n-music",
+    "storage_bucket": "mood-n-music.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:536890345347:android:e7f14aed79e8a2ee6418b6",
+        "android_client_info": {
+          "package_name": "com.example.moodmusic"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "536890345347-uot7fdvtjlescrilb296ofgno96irre0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD57fnQimbKS09ipCLV8ihmGx2d7CBIX6g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "536890345347-uot7fdvtjlescrilb296ofgno96irre0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

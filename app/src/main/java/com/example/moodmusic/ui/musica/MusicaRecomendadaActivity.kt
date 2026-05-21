@@ -1,0 +1,258 @@
+package com.example.moodmusic.ui.musica
+
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material3.*
+import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import android.os.Build
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.moodmusic.data.model.UsuarioEntity
+import com.example.moodmusic.data.remote.model.TrackDto
+import com.example.moodmusic.viewmodel.MusicViewModel
+import com.example.moodmusic.viewmodel.MusicViewModelFactory
+import coil.compose.AsyncImage
+import com.example.moodmusic.ui.main.*
+import com.example.moodmusic.ui.perfil.PerfilActivity
+import com.example.moodmusic.ui.theme.MoodMusicTheme
+import com.example.moodmusic.ui.theme.*
+
+class MusicaRecomendadaActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        val usuario = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("usuario", UsuarioEntity::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getSerializableExtra("usuario") as? UsuarioEntity
+        }
+
+        val mood = intent.getStringExtra("mood") ?: "happy"
+
+        setContent {
+            MoodMusicTheme {
+                PantallaMusicaRecomendada(
+                    usuario = usuario,
+                    mood = mood,
+                    onVolver = {
+                        val intent = Intent(this, PerfilActivity::class.java).apply {
+                            putExtra("usuario", usuario)
+                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        }
+                        startActivity(intent)
+                        finish()
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PantallaMusicaRecomendada(
+    usuario: UsuarioEntity?,
+    mood: String,
+    viewModel: MusicViewModel = viewModel(factory = MusicViewModelFactory()),
+    onVolver: () -> Unit
+) {
+    LaunchedEffect(Unit) {
+        viewModel.cargarCanciones(mood)
+    }
+
+    val canciones = viewModel.canciones
+    val cargando = viewModel.cargando
+    val isDark = LocalIsDarkTheme.current
+
+    val fondoGradient = if (isDark) {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF121212),
+                Color(0xFF1E1E1E),
+                Color(0xFF121212)
+            )
+        )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFFE0F7FA),
+                Color(0xFFF3E5F5),
+                Color(0xFFFFFFFF)
+            )
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(fondoGradient)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+        ) {
+            Spacer(modifier = Modifier.height(60.dp))
+
+            IconButton(
+                onClick = onVolver,
+                modifier = Modifier
+                    .size(45.dp)
+                    .shadow(2.dp, RoundedCornerShape(12.dp))
+                    .background(ColorCampo, RoundedCornerShape(12.dp))
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = ColorAzul,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "Música para ti",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = ColorTexto,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 32.dp)
+            ) {
+                if (cargando) {
+                    item {
+                        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = ColorMorado)
+                        }
+                    }
+                } else {
+                    items(canciones) { cancion ->
+                        ItemCancion(cancion)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ItemCancion(track: TrackDto) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp)
+            .shadow(4.dp, RoundedCornerShape(24.dp))
+            .clickable {
+                val query = "${track.artist.name} ${track.name}"
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = android.net.Uri.parse("https://www.youtube.com/results?search_query=$query")
+                }
+                context.startActivity(intent)
+            },
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = ColorCampo)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val imageUrl = track.image.find { it.url.isNotEmpty() && it.size == "extralarge" }?.url 
+                ?: track.image.find { it.url.isNotEmpty() }?.url 
+                ?: ""
+            
+            // Filtro para ignorar el placeholder de la estrella de Last.fm
+            val isPlaceholder = imageUrl.contains("2a96cbd8b46e442fc41c2b86b821562f") || imageUrl.isEmpty()
+            
+            Box(
+                modifier = Modifier
+                    .size(86.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(ColorBotonGris)
+            ) {
+                if (!isPlaceholder) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = "Portada de ${track.name}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.MusicNote,
+                        contentDescription = null,
+                        modifier = Modifier.align(Alignment.Center).size(35.dp),
+                        tint = ColorMorado.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = track.name,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ColorTexto,
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = track.artist.name,
+                    fontSize = 14.sp,
+                    color = ColorSubtexto,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMusicaRecomendada() {
+    MoodMusicTheme {
+        PantallaMusicaRecomendada(usuario = null, mood = "happy", onVolver = {})
+    }
+}
