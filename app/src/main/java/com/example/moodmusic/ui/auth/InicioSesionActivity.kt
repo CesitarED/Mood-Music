@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -30,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import com.example.moodmusic.R
-import com.example.moodmusic.data.local.database.DatabaseProvider
 import com.example.moodmusic.ui.avatar.SeleccionAvatarActivity
 import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.registro_estado.EstadoAnimoActivity
@@ -38,9 +36,12 @@ import com.example.moodmusic.ui.historial.HistorialActivity
 import com.example.moodmusic.ui.perfil.PerfilActivity
 import com.example.moodmusic.ui.theme.*
 import com.example.moodmusic.viewmodel.UsuarioViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -60,14 +61,11 @@ class InicioSesionActivity : ComponentActivity() {
             MoodMusicTheme {
                 val loginExitoso = viewModel.loginExitoso
                 val mensajeError = viewModel.mensajeError
-                val context = LocalContext.current
 
                 LaunchedEffect(loginExitoso, viewModel.usuarioActual) {
                     if (loginExitoso && viewModel.usuarioActual != null) {
                         val user = viewModel.usuarioActual!!
                         CoroutineScope(Dispatchers.IO).launch {
-                            val db = DatabaseProvider.getDatabase(context)
-                            
                             if (user.avatar == -1) {
                                 val intent = Intent(this@InicioSesionActivity, SeleccionAvatarActivity::class.java)
                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -88,14 +86,25 @@ class InicioSesionActivity : ComponentActivity() {
                                 val mesActual = sdfMes.format(cal.time).replaceFirstChar { it.uppercase() }
                                 val anioActual = sdfAnio.format(cal.time)
 
-                                val registroHoy = db.estadoAnimoDao().obtenerRegistroHoy(
-                                    user.username,
-                                    diaActual,
-                                    mesActual,
-                                    anioActual
-                                )
+                                val uid = FirebaseAuth.getInstance().currentUser?.uid
+                                val registroHoyExiste = if (uid != null) {
+                                    val snapshot = FirebaseFirestore.getInstance()
+                                        .collection("usuarios")
+                                        .document(uid)
+                                        .collection("historial")
+                                        .whereEqualTo("dia", diaActual)
+                                        .whereEqualTo("mes", mesActual)
+                                        .whereEqualTo("anio", anioActual)
+                                        .limit(1)
+                                        .get()
+                                        .await()
 
-                                val intent = if (registroHoy != null) {
+                                    !snapshot.isEmpty
+                                } else {
+                                    false
+                                }
+
+                                val intent = if (registroHoyExiste) {
                                     Intent(this@InicioSesionActivity, PerfilActivity::class.java)
                                 } else {
                                     Intent(this@InicioSesionActivity, EstadoAnimoActivity::class.java)
