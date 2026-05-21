@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.moodmusic.data.remote.api.MusicApiService
-import com.example.moodmusic.data.remote.model.TrackDto
+import com.example.moodmusic.data.remote.model.CancionUi
 import com.example.moodmusic.data.repository.MusicRepository
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
@@ -15,7 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MusicViewModel(private val repository: MusicRepository) : ViewModel() {
 
-    var canciones by mutableStateOf<List<TrackDto>>(emptyList())
+    var canciones by mutableStateOf<List<CancionUi>>(emptyList())
         private set
 
     var cargando by mutableStateOf(false)

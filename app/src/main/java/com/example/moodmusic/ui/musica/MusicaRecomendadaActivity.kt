@@ -33,10 +33,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moodmusic.data.model.UsuarioEntity
-import com.example.moodmusic.data.remote.model.TrackDto
+import com.example.moodmusic.data.remote.model.CancionUi
 import com.example.moodmusic.viewmodel.MusicViewModel
 import com.example.moodmusic.viewmodel.MusicViewModelFactory
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.moodmusic.ui.main.*
 import com.example.moodmusic.ui.perfil.PerfilActivity
 import com.example.moodmusic.ui.theme.MoodMusicTheme
@@ -172,7 +172,7 @@ fun PantallaMusicaRecomendada(
 }
 
 @Composable
-fun ItemCancion(track: TrackDto) {
+fun ItemCancion(track: CancionUi) {
     val context = LocalContext.current
 
     Card(
@@ -181,7 +181,7 @@ fun ItemCancion(track: TrackDto) {
             .height(110.dp)
             .shadow(4.dp, RoundedCornerShape(24.dp))
             .clickable {
-                val query = "${track.artist.name} ${track.name}"
+                val query = android.net.Uri.encode("${track.artistName} ${track.name}")
                 val intent = Intent(Intent.ACTION_VIEW).apply {
                     data = android.net.Uri.parse("https://www.youtube.com/results?search_query=$query")
                 }
@@ -196,35 +196,10 @@ fun ItemCancion(track: TrackDto) {
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val imageUrl = track.image.find { it.url.isNotEmpty() && it.size == "extralarge" }?.url 
-                ?: track.image.find { it.url.isNotEmpty() }?.url 
-                ?: ""
-            
-            // Filtro para ignorar el placeholder de la estrella de Last.fm
-            val isPlaceholder = imageUrl.contains("2a96cbd8b46e442fc41c2b86b821562f") || imageUrl.isEmpty()
-            
-            Box(
-                modifier = Modifier
-                    .size(86.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(ColorBotonGris)
-            ) {
-                if (!isPlaceholder) {
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = "Portada de ${track.name}",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.MusicNote,
-                        contentDescription = null,
-                        modifier = Modifier.align(Alignment.Center).size(35.dp),
-                        tint = ColorMorado.copy(alpha = 0.5f)
-                    )
-                }
-            }
+            CancionImagen(
+                imageUrl = track.imageUrl,
+                contentDescription = "Imagen de ${track.name}"
+            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -238,7 +213,7 @@ fun ItemCancion(track: TrackDto) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = track.artist.name,
+                    text = track.artistName,
                     fontSize = 14.sp,
                     color = ColorSubtexto,
                     fontWeight = FontWeight.Medium,
@@ -247,6 +222,51 @@ fun ItemCancion(track: TrackDto) {
             }
         }
     }
+}
+
+@Composable
+fun CancionImagen(
+    imageUrl: String?,
+    contentDescription: String
+) {
+    Box(
+        modifier = Modifier
+            .size(86.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(ColorBotonGris),
+        contentAlignment = Alignment.Center
+    ) {
+        if (imageUrl.isNullOrBlank()) {
+            ImagenMusicaFallback()
+        } else {
+            SubcomposeAsyncImage(
+                model = imageUrl,
+                contentDescription = contentDescription,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                loading = {
+                    CircularProgressIndicator(
+                        color = ColorMorado,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(28.dp)
+                    )
+                },
+                error = {
+                    ImagenMusicaFallback()
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun ImagenMusicaFallback() {
+    Icon(
+        imageVector = Icons.Default.MusicNote,
+        contentDescription = null,
+        modifier = Modifier.size(35.dp),
+        tint = ColorMorado.copy(alpha = 0.55f)
+    )
 }
 
 @Preview(showBackground = true)
